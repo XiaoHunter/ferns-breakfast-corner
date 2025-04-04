@@ -67,15 +67,21 @@ export default function OrderMenu() {
       total: getTotal(),
     };
 
-    fetch("https://ferns-breakfast-corner.com/send-order.php", {
+    const baseURL = process.env.NODE_ENV === "production"
+      ? "https://order.fernsbreakfast.com"
+      : "http://localhost:3000";
+
+    fetch(`${baseURL}/api/send-order`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+      },
       body: JSON.stringify(data),
     })
       .then((res) => res.json())
       .then((res) => {
         if (res.status === "success") {
-          alert("✅ 已成功送出订单！订单编号: " + res.orderId);
+          alert("✅ 已成功送出订单！订单编号：" + res.orderId);
           clearOrder();
         } else {
           alert("❌ 提交失败");
