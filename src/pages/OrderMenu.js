@@ -11,3 +11,4 @@ const getTotal = () => {
   if (packedIncluded) sum += 0.2;
   return sum.toFixed(2);
 };
+// force trigger git change
