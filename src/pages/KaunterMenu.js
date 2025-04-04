@@ -26,7 +26,6 @@ const KaunterMenu = () => {
 
   useEffect(() => {
     if (!token) return;
-    setOrders([]);
     fetch("https://ferns-breakfast-corner.com/api/orders.json")
       .then((res) => res.json())
       .then((data) => {
@@ -112,7 +111,7 @@ const KaunterMenu = () => {
       <h1>🧾 Kaunter Order List</h1>
       {loading ? (
         <p>⏳ 数据加载中...</p>  // 加载时显示的提示
-      ) : orders.length === 0 ? (
+      ) : orders && orders.length === 0 ? (
         <p>📂 没有可用的订单</p>  // 没有数据时显示的提示
       ) : (
         orders.map((order, index) => (
@@ -120,7 +119,7 @@ const KaunterMenu = () => {
             <p><strong>订单编号:</strong> {order.orderId}</p>
             <p><strong>Device:</strong> {order.deviceId}</p>
             <p><strong>时间:</strong> {order.time}</p>
-            <p><strong>总价:</strong> RM {order.total.toFixed(2)}</p>
+            <p><strong>总价:</strong> RM {order.total ? order.total.toFixed(2) : 'N/A'}</p> {/* 避免 null 或 undefined 错误 */}
             <p><strong>餐点:</strong></p>
             <ul>
               {Array.isArray(order.items) && order.items.length > 0 ? (
@@ -148,6 +147,7 @@ const KaunterMenu = () => {
       )}
     </div>
   );
+
 };
 
 export default KaunterMenu;
