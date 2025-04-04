@@ -58,7 +58,22 @@ export default function OrderMenu() {
       items,
       total: getTotal(),
     };
-    alert("✅ 订单已准备好发送：\n" + JSON.stringify(data, null, 2));
+    
+    fetch("http://localhost/ferns-backend/send-order.php", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    })
+      .then((res) => res.json())
+      .then((res) => {
+        if (res.status === "success") {
+          alert("✅ 已成功送出订单！订单编号: " + res.orderId);
+          clearOrder();
+        } else {
+          alert("❌ 提交失败");
+        }
+      });
+
     // 之后可发送到后端或广播给其他页面
   };
 
