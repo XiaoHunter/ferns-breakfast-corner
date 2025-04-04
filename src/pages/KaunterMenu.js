@@ -45,7 +45,7 @@ const KaunterMenu = () => {
     selectedData.forEach((order) => {
       order.status = "completed";
       order.payment = "cash"; // 或者根据选项选择 "ewallet"
-
+      console.log(order); 
       fetch("https://ferns-breakfast-corner.com/api/update-order.php", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
