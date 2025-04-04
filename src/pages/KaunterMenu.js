@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 
 const KaunterMenu = () => {
@@ -23,9 +24,18 @@ const KaunterMenu = () => {
 
   useEffect(() => {
     if (!token) return;
-    fetch("https://ferns-breakfast-corner.com/api/orders.json")
-      .then((res) => res.json())
-      .then((data) => setOrders(data.reverse()));
+
+    const fetchOrders = () => {
+      fetch("https://ferns-breakfast-corner.com/api/orders.json")
+        .then((res) => res.json())
+        .then((data) => setOrders(data.reverse()));
+    };
+
+    fetchOrders(); // 初始加载
+
+    const interval = setInterval(fetchOrders, 5000); // 每5秒刷新
+
+    return () => clearInterval(interval); // 清理定时器
   }, [token]);
 
   const markAsPaid = (index, method) => {
@@ -47,6 +57,13 @@ const KaunterMenu = () => {
           alert("❌ 失败：" + res.message);
         }
       });
+  };
+
+  const confirmAndMark = (index, method) => {
+    const confirmMsg = method === "ewallet" ? "请确认已经收到电子钱包付款，继续？" : "确认现金已收到？";
+    if (window.confirm(confirmMsg)) {
+      markAsPaid(index, method);
+    }
   };
 
   if (!token) {
@@ -87,8 +104,8 @@ const KaunterMenu = () => {
             <p style={{ color: "green" }}>✅ 已付款（{order.payment}）</p>
           ) : (
             <div>
-              <button onClick={() => markAsPaid(index, "cash")}>💵 现金付款</button>
-              <button onClick={() => markAsPaid(index, "ewallet")} style={{ marginLeft: 10 }}>
+              <button onClick={() => confirmAndMark(index, "cash")}>💵 现金付款</button>
+              <button onClick={() => confirmAndMark(index, "ewallet")} style={{ marginLeft: 10 }}>
                 📱 电子钱包付款
               </button>
             </div>
