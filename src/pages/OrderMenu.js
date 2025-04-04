@@ -28,13 +28,18 @@ export default function OrderMenu() {
     });
   };
 
-  const getTotal = () =>
-    Object.entries(order).reduce((sum, [key, item]) => {
+  const getTotal = () => {
+    let packedIncluded = false;
+    let sum = Object.entries(order).reduce((total, [key, item]) => {
       const drink = drinks.find((d) => d.name === key.split("-")[0]);
       const temp = key.includes("cold") ? drink.cold : drink.hot;
-      const add = item.packed ? 0.2 : 0;
+      const add = 0; if (item.packed) packedIncluded = true;
       return sum + item.qty * (temp + add);
-    }, 0).toFixed(2);
+    return total + item.qty * (temp + add);
+  }, 0);
+  if (packedIncluded) sum += 0.2;
+  return sum.toFixed(2);
+}
 
   const clearOrder = () => setOrder({});
   const handleRequestBill = () => {
