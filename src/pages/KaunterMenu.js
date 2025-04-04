@@ -1,10 +1,9 @@
-import React, { useEffect, useState } from "react";
-
 const KaunterMenu = () => {
   const [token, setToken] = useState(null);
   const [input, setInput] = useState("");
   const [orders, setOrders] = useState([]);
-  
+  const [selectedOrders, setSelectedOrders] = useState([]);
+
   const login = () => {
     fetch("https://ferns-breakfast-corner.com/api/kaunter-login.php", {
       method: "POST",
@@ -28,40 +27,38 @@ const KaunterMenu = () => {
       .then((data) => setOrders(data.reverse()));
   }, [token]);
 
-  const markAsPaid = (index, method) => {
-    const updatedOrders = [...orders];
-    updatedOrders[index].status = "completed";
-    updatedOrders[index].payment = method;
-
-    // 如果是电子钱包，我们可以提示员工确认电子钱包是否已收到款项
-    if (method === "ewallet") {
-      const isPaid = window.confirm("是否已收到电子钱包付款？");
-      if (!isPaid) {
-        alert("❌ 电子钱包付款未确认！");
-        return;
+  const handleSelectOrder = (orderId) => {
+    setSelectedOrders((prev) => {
+      if (prev.includes(orderId)) {
+        return prev.filter((id) => id !== orderId);
+      } else {
+        return [...prev, orderId];
       }
-    } else if (method === "cash") {
-      const isPaid = window.confirm("现金已收到吗？");
-      if (!isPaid) {
-        alert("❌ 现金未收到！");
-        return;
-      }
-    }
+    });
+  };
 
-    fetch("https://ferns-breakfast-corner.com/api/update-order.php", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(updatedOrders),
-    })
-      .then((res) => res.json())
-      .then((res) => {
-        if (res.status === "success") {
-          alert("✅ 已完成付款！Receipt 可打印");
-          setOrders(updatedOrders);
-        } else {
-          alert("❌ 失败：" + res.message);
-        }
-      });
+  const markAsPaid = () => {
+    const selectedData = orders.filter((order) => selectedOrders.includes(order.orderId));
+    
+    selectedData.forEach((order) => {
+      order.status = "completed";
+      order.payment = "cash"; // 或者根据选项选择 "ewallet"
+
+      fetch("https://ferns-breakfast-corner.com/api/update-order.php", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify([order]),
+      })
+        .then((res) => res.json())
+        .then((res) => {
+          if (res.status === "success") {
+            alert("✅ 付款完成！");
+            setOrders((prevOrders) => prevOrders.filter((item) => item.orderId !== order.orderId));
+          } else {
+            alert("❌ 失败：" + res.message);
+          }
+        });
+    });
   };
 
   if (!token) {
@@ -98,14 +95,19 @@ const KaunterMenu = () => {
               </li>
             ))}
           </ul>
+          <label>
+            <input 
+              type="checkbox" 
+              onChange={() => handleSelectOrder(order.orderId)} 
+              checked={selectedOrders.includes(order.orderId)}
+            />
+            选择此订单
+          </label>
           {order.status === "completed" ? (
             <p style={{ color: "green" }}>✅ 已付款（{order.payment}）</p>
           ) : (
             <div>
-              <button onClick={() => markAsPaid(index, "cash")}>💵 现金付款</button>
-              <button onClick={() => markAsPaid(index, "ewallet")} style={{ marginLeft: 10 }}>
-                📱 电子钱包付款
-              </button>
+              <button onClick={markAsPaid}>💵 完成付款</button>
             </div>
           )}
         </div>
@@ -113,5 +115,3 @@ const KaunterMenu = () => {
     </div>
   );
 };
-
-export default KaunterMenu;
