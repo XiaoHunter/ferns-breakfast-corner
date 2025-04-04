@@ -96,32 +96,36 @@ const KaunterMenu = () => {
   return (
     <div style={{ padding: "20px" }}>
       <h1>🧾 Kaunter Order List</h1>
-      {orders.map((order, index) => (
-        <div key={order.orderId} style={{ border: "1px solid #ccc", marginBottom: 20, padding: 10 }}>
-          <p><strong>订单编号:</strong> {order.orderId}</p>
-          <p><strong>Device:</strong> {order.deviceId}</p>
-          <p><strong>时间:</strong> {order.time}</p>
-          <p><strong>总价:</strong> RM {order.total.toFixed(2)}</p>
-          <p><strong>餐点:</strong></p>
-          <ul>
-            {order.items.map((item, i) => (
-              <li key={i}>
-                {item.name} x {item.qty} {item.packed ? "（打包）" : ""}
-              </li>
-            ))}
-          </ul>
-          {order.status === "completed" ? (
-            <p style={{ color: "green" }}>✅ 已付款（{order.payment}）</p>
-          ) : (
-            <div>
-              <button onClick={() => handlePaymentWithConfirmation(index, "cash")}>💵 现金付款</button>
-              <button onClick={() => handlePaymentWithConfirmation(index, "ewallet")} style={{ marginLeft: 10 }}>
-                📱 电子钱包付款
-              </button>
-            </div>
-          )}
-        </div>
-      ))}
+      {orders && orders.length > 0 ? (
+        {orders.map((order, index) => (
+          <div key={order.orderId} style={{ border: "1px solid #ccc", marginBottom: 20, padding: 10 }}>
+            <p><strong>订单编号:</strong> {order.orderId}</p>
+            <p><strong>Device:</strong> {order.deviceId}</p>
+            <p><strong>时间:</strong> {order.time}</p>
+            <p><strong>总价:</strong> RM {order.total.toFixed(2)}</p>
+            <p><strong>餐点:</strong></p>
+            <ul>
+              {order.items.map((item, i) => (
+                <li key={i}>
+                  {item.name} x {item.qty} {item.packed ? "（打包）" : ""}
+                </li>
+              ))}
+            </ul>
+            {order.status === "completed" ? (
+              <p style={{ color: "green" }}>✅ 已付款（{order.payment}）</p>
+            ) : (
+              <div>
+                <button onClick={() => handlePaymentWithConfirmation(index, "cash")}>💵 现金付款</button>
+                <button onClick={() => handlePaymentWithConfirmation(index, "ewallet")} style={{ marginLeft: 10 }}>
+                  📱 电子钱包付款
+                </button>
+              </div>
+            )}
+          </div>
+        ))
+      ) : (
+        <p>没有可用的订单</p>
+      )}
     </div>
   );
 };
