@@ -39,6 +39,39 @@ const KaunterMenu = () => {
     });
   };
 
+  const handleCompleteOrder = (orderId) => {
+    const selectedOrder = orders.find(order => order.orderId === orderId);
+
+    // 确保订单已选中并且包含必要的数据
+    if (selectedOrder && selectedOrder.status === "completed") {
+      // 发送更新请求
+      fetch('https://ferns-breakfast-corner.com/api/update-order.php', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          deviceId: selectedOrder.deviceId,
+          items: selectedOrder.items,
+          total: selectedOrder.total,
+          orderId: selectedOrder.orderId,
+          status: "completed",  // 更新状态
+          payment: selectedOrder.payment || "cash"  // 使用正确的支付方式
+        }),
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.status === "success") {
+          alert("订单已完成！");
+        } else {
+          alert("失败：" + data.message);
+        }
+      });
+    } else {
+      alert("请选择已付款的订单！");
+    }
+  };
+
   const markAsPaid = () => {
     const selectedData = orders.filter((order) => selectedOrders.includes(order.orderId));
     
