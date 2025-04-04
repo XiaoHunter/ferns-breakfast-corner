@@ -28,7 +28,8 @@ export default function OrderMenu() {
   };
 
   const getTotal = () => {
-    let packedIncluded = false;
+    let packedFee = 0.2; // Set the packing fee
+let packedIncluded = false;
     let sum = 0;
     for (const [key, item] of Object.entries(order)) {
       const drink = drinks.find((d) => d.name === key.split("-")[0]);
