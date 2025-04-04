@@ -55,27 +55,30 @@ const KaunterMenu = () => {
   };
 
   const handlePaymentWithConfirmation = (index, paymentMethod) => {
-    const updatedOrders = [...orders];
-    updatedOrders[index].payment = paymentMethod;
-    updatedOrders[index].status = 'completed';
+      const updatedOrders = [...orders];
+      updatedOrders[index].payment = paymentMethod;
+      updatedOrders[index].status = 'completed';
 
-    // 调用API更新订单状态
-    fetch("https://ferns-breakfast-corner.com/api/update-order.php", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(updatedOrders[index]),
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.status === "success") {
-          alert("付款成功！");
-          setOrders(updatedOrders);  // 更新前端显示
-        } else {
-          alert("付款失败，请重试");
-        }
-      });
+      // 调用API更新订单状态
+      fetch("https://ferns-breakfast-corner.com/api/update-order.php", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(updatedOrders[index]),
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.status === "success") {
+            alert("付款成功！");
+            // 刷新订单列表，重新获取数据
+            fetch("https://ferns-breakfast-corner.com/api/orders.json")
+              .then((res) => res.json())
+              .then((data) => setOrders(data.reverse())); // 确保订单列表是最新的
+          } else {
+            alert("付款失败，请重试");
+          }
+        });
   };
 
   if (!token) {
@@ -98,8 +101,7 @@ const KaunterMenu = () => {
   return (
     <div style={{ padding: "20px" }}>
       <h1>🧾 Kaunter Order List</h1>
-      {/* 确保 orders 是数组且存在 */}
-      {ordersList.length > 0 ? (
+      {orders && orders.length > 0 ? (
         orders.map((order, index) => (
           <div key={order.orderId} style={{ border: "1px solid #ccc", marginBottom: 20, padding: 10 }}>
             <p><strong>订单编号:</strong> {order.orderId}</p>
@@ -127,7 +129,7 @@ const KaunterMenu = () => {
           </div>
         ))
       ) : (
-        <p>没有可用的订单</p>
+        <p>📂没有可用的订单</p>
       )}
     </div>
   );
