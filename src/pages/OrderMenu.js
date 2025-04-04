@@ -58,7 +58,7 @@ export default function OrderMenu() {
       total: getTotal(),
     };
     
-    fetch("https://ferns-breakfast-corner.ct.ws/send-order.php", {
+    fetch("http://ferns-breakfast-corner.ct.ws/send-order.php", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
