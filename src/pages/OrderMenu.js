@@ -28,18 +28,14 @@ export default function OrderMenu() {
   };
 
   const getTotal = () => {
-    let packedFee = 0.2; // Set the packing fee
-let packedIncluded = false;
+    let packedFee = 0.2; // 单独的打包费用
     let sum = 0;
     for (const [key, item] of Object.entries(order)) {
-      const drink = drinks.find((d) => d.name === key.split("-")[0]);
-      const temp = key.includes("cold") ? drink.cold : drink.hot;
-      if (item.packed) packedIncluded = true;
-      sum += item.qty * temp;
+      // 如果有打包饮料，每个饮料的打包费用都会单独加上
+      sum += item.qty * (item.packed ? (item.packed ? packedFee : 0) : (item.hot || item.cold));
     }
-    if (packedIncluded) sum += 0.2;
-    return sum.toFixed(2);
-  };
+    return sum;
+};
 
   const clearOrder = () => setOrder({});
   const handleRequestBill = () => {
