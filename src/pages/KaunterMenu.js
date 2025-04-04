@@ -5,6 +5,7 @@ const KaunterMenu = () => {
   const [token, setToken] = useState(null);
   const [input, setInput] = useState("");
   const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [paymentMethod, setPaymentMethod] = useState(""); // Record payment method
 
   const login = () => {
@@ -27,8 +28,15 @@ const KaunterMenu = () => {
     if (!token) return;
     fetch("https://ferns-breakfast-corner.com/api/orders.json")
       .then((res) => res.json())
-      .then((data) => setOrders(data.reverse()));
-  }, [token]);
+      .then((data) => {
+        setOrders(data.reverse());
+        setLoading(false);  // 数据加载完成，设置loading为false
+      })
+      .catch((error) => {
+        console.error("Failed to load orders:", error);
+        setLoading(false);  // 即使出错，也要停止loading
+      });
+  }, []);
 
   // 代码修复，确保orders是一个空数组
   const ordersList = orders || [];
@@ -101,8 +109,11 @@ const KaunterMenu = () => {
   return (
     <div style={{ padding: "20px" }}>
       <h1>🧾 Kaunter Order List</h1>
-      {console.log('Orders:', orders)} {/* 输出 orders 数据 */}
-      {Array.isArray(orders) && orders.length > 0 ? (
+      {loading ? (
+        <p>⏳ 数据加载中...</p>  // 加载时显示的提示
+      ) : orders.length === 0 ? (
+        <p>📂 没有可用的订单</p>  // 没有数据时显示的提示
+      ) : (
         orders.map((order, index) => (
           <div key={order.orderId} style={{ border: "1px solid #ccc", marginBottom: 20, padding: 10 }}>
             <p><strong>订单编号:</strong> {order.orderId}</p>
@@ -111,11 +122,15 @@ const KaunterMenu = () => {
             <p><strong>总价:</strong> RM {order.total.toFixed(2)}</p>
             <p><strong>餐点:</strong></p>
             <ul>
-              {order.items.map((item, i) => (
-                <li key={i}>
-                  {item.name} x {item.qty} {item.packed ? "（打包）" : ""}
-                </li>
-              ))}
+              {Array.isArray(order.items) && order.items.length > 0 ? (
+                order.items.map((item, i) => (
+                  <li key={i}>
+                    {item.name} x {item.qty} {item.packed ? "（打包）" : ""}
+                  </li>
+                ))
+              ) : (
+                <li>无餐点</li>  {/* 如果没有 items，显示无餐点 */}
+              )}
             </ul>
             {order.status === "completed" ? (
               <p style={{ color: "green" }}>✅ 已付款（{order.payment}）</p>
@@ -129,8 +144,6 @@ const KaunterMenu = () => {
             )}
           </div>
         ))
-      ) : (
-        <p>📂没有可用的订单</p>
       )}
     </div>
   );
