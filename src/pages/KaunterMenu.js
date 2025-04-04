@@ -1,11 +1,10 @@
-
 import React, { useEffect, useState } from "react";
 
 const KaunterMenu = () => {
   const [token, setToken] = useState(null);
   const [input, setInput] = useState("");
   const [orders, setOrders] = useState([]);
-
+  
   const login = () => {
     fetch("https://ferns-breakfast-corner.com/api/kaunter-login.php", {
       method: "POST",
@@ -24,24 +23,30 @@ const KaunterMenu = () => {
 
   useEffect(() => {
     if (!token) return;
-
-    const fetchOrders = () => {
-      fetch("https://ferns-breakfast-corner.com/api/orders.json")
-        .then((res) => res.json())
-        .then((data) => setOrders(data.reverse()));
-    };
-
-    fetchOrders(); // 初始加载
-
-    const interval = setInterval(fetchOrders, 5000); // 每5秒刷新
-
-    return () => clearInterval(interval); // 清理定时器
+    fetch("https://ferns-breakfast-corner.com/api/orders.json")
+      .then((res) => res.json())
+      .then((data) => setOrders(data.reverse()));
   }, [token]);
 
   const markAsPaid = (index, method) => {
     const updatedOrders = [...orders];
     updatedOrders[index].status = "completed";
     updatedOrders[index].payment = method;
+
+    // 如果是电子钱包，我们可以提示员工确认电子钱包是否已收到款项
+    if (method === "ewallet") {
+      const isPaid = window.confirm("是否已收到电子钱包付款？");
+      if (!isPaid) {
+        alert("❌ 电子钱包付款未确认！");
+        return;
+      }
+    } else if (method === "cash") {
+      const isPaid = window.confirm("现金已收到吗？");
+      if (!isPaid) {
+        alert("❌ 现金未收到！");
+        return;
+      }
+    }
 
     fetch("https://ferns-breakfast-corner.com/api/update-order.php", {
       method: "POST",
@@ -57,13 +62,6 @@ const KaunterMenu = () => {
           alert("❌ 失败：" + res.message);
         }
       });
-  };
-
-  const confirmAndMark = (index, method) => {
-    const confirmMsg = method === "ewallet" ? "请确认已经收到电子钱包付款，继续？" : "确认现金已收到？";
-    if (window.confirm(confirmMsg)) {
-      markAsPaid(index, method);
-    }
   };
 
   if (!token) {
@@ -91,7 +89,7 @@ const KaunterMenu = () => {
           <p><strong>订单编号:</strong> {order.orderId}</p>
           <p><strong>Device:</strong> {order.deviceId}</p>
           <p><strong>时间:</strong> {order.time}</p>
-          <p><strong>总价:</strong> RM {Number(order.total).toFixed(2)}</p>
+          <p><strong>总价:</strong> RM {order.total.toFixed(2)}</p>
           <p><strong>餐点:</strong></p>
           <ul>
             {order.items.map((item, i) => (
@@ -104,8 +102,8 @@ const KaunterMenu = () => {
             <p style={{ color: "green" }}>✅ 已付款（{order.payment}）</p>
           ) : (
             <div>
-              <button onClick={() => confirmAndMark(index, "cash")}>💵 现金付款</button>
-              <button onClick={() => confirmAndMark(index, "ewallet")} style={{ marginLeft: 10 }}>
+              <button onClick={() => markAsPaid(index, "cash")}>💵 现金付款</button>
+              <button onClick={() => markAsPaid(index, "ewallet")} style={{ marginLeft: 10 }}>
                 📱 电子钱包付款
               </button>
             </div>
