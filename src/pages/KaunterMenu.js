@@ -115,3 +115,5 @@ const KaunterMenu = () => {
     </div>
   );
 };
+
+export default KaunterMenu;
