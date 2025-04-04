@@ -101,7 +101,7 @@ const KaunterMenu = () => {
   return (
     <div style={{ padding: "20px" }}>
       <h1>🧾 Kaunter Order List</h1>
-      {orders && orders.length > 0 ? (
+      {Array.isArray(orders) && orders.length > 0 ? (
         orders.map((order, index) => (
           <div key={order.orderId} style={{ border: "1px solid #ccc", marginBottom: 20, padding: 10 }}>
             <p><strong>订单编号:</strong> {order.orderId}</p>
