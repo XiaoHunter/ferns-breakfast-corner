@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 
 const drinks = [
@@ -34,6 +35,27 @@ export default function OrderMenu() {
       const add = item.packed ? 0.2 : 0;
       return sum + item.qty * (temp + add);
     }, 0).toFixed(2);
+
+  const clearOrder = () => setOrder({});
+  const handleRequestBill = () => {
+    const deviceId = "device-" + Math.random().toString(36).substring(2, 8);
+    const items = Object.entries(order).map(([key, item]) => {
+      const [name, type] = key.split("-");
+      return {
+        name,
+        type: type.toUpperCase(),
+        qty: item.qty,
+        packed: item.packed,
+      };
+    });
+    const data = {
+      deviceId,
+      items,
+      total: getTotal(),
+    };
+    alert("✅ 订单已准备好发送：\n" + JSON.stringify(data, null, 2));
+    // 之后可发送到后端或广播给其他页面
+  };
 
   return (
     <div className="p-4 bg-yellow-100 min-h-screen">
@@ -73,9 +95,28 @@ export default function OrderMenu() {
           })
         ))}
       </div>
-      <div className="mt-6 text-right text-xl">
-        总价: RM {getTotal()}
-      </div>
+
+      {/* Bill Summary */}
+      {Object.keys(order).length > 0 && (
+        <div className="mt-6 bg-white p-4 rounded shadow">
+          <h2 className="text-lg font-bold mb-2">🧾 当前订单</h2>
+          <ul className="list-disc pl-5 text-sm">
+            {Object.entries(order).map(([key, item]) => {
+              const [name, type] = key.split("-");
+              return (
+                <li key={key}>
+                  {name} ({type.toUpperCase()}) x {item.qty} {item.packed ? "【打包】" : ""}
+                </li>
+              );
+            })}
+          </ul>
+          <p className="mt-2 text-right font-bold">总价: RM {getTotal()}</p>
+          <div className="flex justify-end gap-2 mt-4">
+            <button onClick={clearOrder} className="bg-gray-400 text-white px-3 py-1 rounded">清空</button>
+            <button onClick={handleRequestBill} className="bg-blue-600 text-white px-3 py-1 rounded">请求账单</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
