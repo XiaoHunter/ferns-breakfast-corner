@@ -74,7 +74,7 @@ const KaunterMenu = () => {
           <p><strong>订单编号:</strong> {order.orderId}</p>
           <p><strong>Device:</strong> {order.deviceId}</p>
           <p><strong>时间:</strong> {order.time}</p>
-          <p><strong>总价:</strong> RM {order.total.toFixed(2)}</p>
+          <p><strong>总价:</strong> RM {Number(order.total).toFixed(2)}</p>
           <p><strong>餐点:</strong></p>
           <ul>
             {order.items.map((item, i) => (
