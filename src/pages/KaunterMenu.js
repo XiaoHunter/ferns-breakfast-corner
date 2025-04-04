@@ -1,3 +1,5 @@
+import React, { useState, useEffect } from "react";
+
 const KaunterMenu = () => {
   const [token, setToken] = useState(null);
   const [input, setInput] = useState("");
