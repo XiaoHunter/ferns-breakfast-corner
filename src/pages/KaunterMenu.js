@@ -26,6 +26,7 @@ const KaunterMenu = () => {
 
   useEffect(() => {
     if (!token) return;
+    setOrders([]);
     fetch("https://ferns-breakfast-corner.com/api/orders.json")
       .then((res) => res.json())
       .then((data) => {
@@ -39,7 +40,7 @@ const KaunterMenu = () => {
   }, []);
 
   // 代码修复，确保orders是一个空数组
-  const ordersList = orders || [];
+  const ordersList = orders || [];  
 
   const handlePayment = (index, method) => {
     const updatedOrders = [...orders];
