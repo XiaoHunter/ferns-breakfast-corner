@@ -120,15 +120,11 @@ const KaunterMenu = () => {
             <p><strong>总价:</strong> RM {order.total ? order.total.toFixed(2) : 'N/A'}</p> {/* 防止 null 或 undefined 错误 */}
             <p><strong>餐点:</strong></p>
             <ul>
-              {Array.isArray(order.items) && order.items.length > 0 ? (
-                order.items.map((item, i) => (
-                  <li key={i}>
-                    {item.name} x {item.qty} {item.packed ? "（打包）" : ""}
-                  </li>
-                ))
-              ) : (
-                <li>无餐点</li>  {/* 如果没有 items，显示无餐点 */}
-              )}
+              {Array.isArray(order.items) && order.items.length > 0 && order.items.map((item, i) => (
+                <li key={i}>
+                  {item.name} x {item.qty} {item.packed ? "（打包）" : ""}
+                </li>
+              ))}
             </ul>
             {order.status === "completed" ? (
               <p style={{ color: "green" }}>✅ 已付款（{order.payment}）</p>
