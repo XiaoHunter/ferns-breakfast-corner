@@ -30,6 +30,9 @@ const KaunterMenu = () => {
       .then((data) => setOrders(data.reverse()));
   }, [token]);
 
+  // 代码修复，确保orders是一个空数组
+  const ordersList = orders || [];
+
   const handlePayment = (index, method) => {
     const updatedOrders = [...orders];
     updatedOrders[index].status = "completed";
@@ -51,29 +54,28 @@ const KaunterMenu = () => {
       });
   };
 
-  const handlePaymentWithConfirmation = (index, method) => {
-    const isConfirmed = window.confirm("确认付款吗？");
-    
-    if (isConfirmed) {
-      const updatedOrders = [...orders];
-      updatedOrders[index].status = "completed";
-      updatedOrders[index].payment = method;
+  const handlePaymentWithConfirmation = (index, paymentMethod) => {
+    const updatedOrders = [...orders];
+    updatedOrders[index].payment = paymentMethod;
+    updatedOrders[index].status = 'completed';
 
-      fetch("https://ferns-breakfast-corner.com/api/update-order.php", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(updatedOrders),
-      })
-        .then((res) => res.json())
-        .then((res) => {
-          if (res.status === "success") {
-            alert("✅ 已完成付款！Receipt 可打印");
-            setOrders(updatedOrders);
-          } else {
-            alert("❌ 失败：" + res.message);
-          }
-        });
-    }
+    // 调用API更新订单状态
+    fetch("https://ferns-breakfast-corner.com/api/update-order.php", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(updatedOrders[index]),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.status === "success") {
+          alert("付款成功！");
+          setOrders(updatedOrders);  // 更新前端显示
+        } else {
+          alert("付款失败，请重试");
+        }
+      });
   };
 
   if (!token) {
@@ -97,7 +99,7 @@ const KaunterMenu = () => {
     <div style={{ padding: "20px" }}>
       <h1>🧾 Kaunter Order List</h1>
       {/* 确保 orders 是数组且存在 */}
-      {Array.isArray(orders) && orders.length > 0 ? (
+      {ordersList.length > 0 ? (
         orders.map((order, index) => (
           <div key={order.orderId} style={{ border: "1px solid #ccc", marginBottom: 20, padding: 10 }}>
             <p><strong>订单编号:</strong> {order.orderId}</p>
