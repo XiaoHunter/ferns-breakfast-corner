@@ -134,7 +134,7 @@ export default function OrderMenu() {
         <ul className="mb-2">
           {Object.entries(order).map(([key, item]) => (
             <li key={key}>
-              {key.replace(/-/g, " ").replace("PACKED", "（打包）").toUpperCase()} x {item.qty}
+              {key.toUpperCase().replace(/-/g, " ").replace("PACKED", "（打包）")} x {item.qty}
             </li>
           ))}
         </ul>
