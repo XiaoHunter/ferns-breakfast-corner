@@ -72,7 +72,7 @@ export default function OrderMenu() {
       headers: {
         "Content-Type": "application/json"
       },
-      body: JSON.stringify(orderData)
+      body: JSON.stringify(data)
     })
       .then((res) => res.json())
       .then((res) => {
