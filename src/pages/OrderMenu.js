@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 
 const drinks = [
@@ -13,7 +14,7 @@ const drinks = [
 export default function OrderMenu() {
   const [order, setOrder] = useState({});
 
-  const updateQty = (key, delta, packed = false) => {
+  const updateQty = (key, delta) => {
     setOrder((prev) => {
       const qty = (prev[key]?.qty || 0) + delta;
       if (qty <= 0) {
@@ -22,21 +23,20 @@ export default function OrderMenu() {
       }
       return {
         ...prev,
-        [key]: { ...prev[key], qty, packed },
+        [key]: { ...prev[key], qty },
       };
     });
   };
 
   const getTotal = () => {
-    let packedIncluded = false;
     let sum = 0;
     for (const [key, item] of Object.entries(order)) {
-      const drink = drinks.find((d) => d.name === key.split("-")[0]);
-      const temp = key.includes("cold") ? drink.cold : drink.hot;
-      if (item.packed) packedIncluded = true;
-      sum += item.qty * temp;
+      const [name, type, packed] = key.split("-");
+      const drink = drinks.find((d) => d.name === name);
+      const price = type === "cold" ? drink.cold : drink.hot;
+      const packedFee = packed === "packed" ? 0.2 : 0;
+      sum += item.qty * (price + packedFee);
     }
-    if (packedIncluded) sum += 0.2;
     return sum.toFixed(2);
   };
 
@@ -44,12 +44,12 @@ export default function OrderMenu() {
   const handleRequestBill = () => {
     const deviceId = "device-" + Math.random().toString(36).substring(2, 8);
     const items = Object.entries(order).map(([key, item]) => {
-      const [name, type] = key.split("-");
+      const [name, type, packed] = key.split("-");
       return {
         name,
         type: type.toUpperCase(),
         qty: item.qty,
-        packed: item.packed,
+        packed: packed === "packed",
       };
     });
     const data = {
@@ -57,7 +57,7 @@ export default function OrderMenu() {
       items,
       total: getTotal(),
     };
-    
+
     fetch("https://ferns-breakfast-corner.com/send-order.php", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -79,88 +79,61 @@ export default function OrderMenu() {
       <h1 className="text-2xl font-bold mb-4">🧋 Order Menu</h1>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
         {drinks.map((drink) =>
-          ["hot", "cold"].map((type) => {
-            const key = drink.name + "-" + type;
-            const item = order[key];
-            return (
-              <div key={key} className="bg-white p-4 rounded shadow">
-                <h2 className="font-semibold text-lg">
-                  {drink.cn} ({drink.name}) - {type.toUpperCase()}
-                </h2>
-                <p>
-                  RM{" "}
-                  {type === "hot"
-                    ? drink.hot.toFixed(2)
-                    : drink.cold.toFixed(2)}
-                </p>
-                <label className="block my-1">
-                  <input
-                    type="checkbox"
-                    checked={item?.packed || false}
-                    onChange={(e) =>
-                      setOrder((prev) => ({
-                        ...prev,
-                        [key]: {
-                          ...(prev[key] || { qty: 1 }),
-                          packed: e.target.checked,
-                        },
-                      }))
-                    }
-                  />{" "}
-                  打包 (+RM0.20)
-                </label>
-                <div className="flex gap-2 items-center mt-2">
-                  <button
-                    className="bg-red-400 px-2 text-white rounded"
-                    onClick={() => updateQty(key, -1)}
-                  >
-                    -
-                  </button>
-                  <span>{item?.qty || 0}</span>
-                  <button
-                    className="bg-green-400 px-2 text-white rounded"
-                    onClick={() => updateQty(key, 1)}
-                  >
-                    +
-                  </button>
+          ["hot", "cold"].map((type) =>
+            [false, true].map((isPacked) => {
+              const key =
+                drink.name + "-" + type + (isPacked ? "-packed" : "");
+              const item = order[key];
+              return (
+                <div key={key} className="bg-white p-4 rounded shadow">
+                  <h2 className="font-semibold text-lg">
+                    {drink.cn} ({drink.name}) - {type.toUpperCase()}{" "}
+                    {isPacked ? "📦打包" : ""}
+                  </h2>
+                  <p>
+                    RM{" "}
+                    {(type === "hot" ? drink.hot : drink.cold) +
+                      (isPacked ? 0.2 : 0)}
+                    {" "}
+                    x {item?.qty || 0}
+                  </p>
+                  <div className="flex gap-2 mt-2">
+                    <button
+                      className="px-3 py-1 bg-gray-300 rounded"
+                      onClick={() => updateQty(key, -1)}
+                    >
+                      -
+                    </button>
+                    <span>{item?.qty || 0}</span>
+                    <button
+                      className="px-3 py-1 bg-green-400 rounded"
+                      onClick={() => updateQty(key, 1)}
+                    >
+                      +
+                    </button>
+                  </div>
                 </div>
-              </div>
-            );
-          })
+              );
+            })
+          )
         )}
       </div>
 
-      {Object.keys(order).length > 0 && (
-        <div className="mt-6 bg-white p-4 rounded shadow">
-          <h2 className="text-lg font-bold mb-2">🧾 当前订单</h2>
-          <ul className="list-disc pl-5 text-sm">
-            {Object.entries(order).map(([key, item]) => {
-              const [name, type] = key.split("-");
-              return (
-                <li key={key}>
-                  {name} ({type.toUpperCase()}) x {item.qty}{" "}
-                  {item.packed ? "【打包】" : ""}
-                </li>
-              );
-            })}
-          </ul>
-          <p className="mt-2 text-right font-bold">总价: RM {getTotal()}</p>
-          <div className="flex justify-end gap-2 mt-4">
-            <button
-              onClick={clearOrder}
-              className="bg-gray-400 text-white px-3 py-1 rounded"
-            >
-              清空
-            </button>
-            <button
-              onClick={handleRequestBill}
-              className="bg-blue-600 text-white px-3 py-1 rounded"
-            >
-              请求账单
-            </button>
-          </div>
-        </div>
-      )}
+      <div className="mt-6">
+        <h2 className="text-xl font-semibold">🧾 Total: RM {getTotal()}</h2>
+        <button
+          className="mt-2 px-4 py-2 bg-blue-500 text-white rounded"
+          onClick={handleRequestBill}
+        >
+          Request Bill
+        </button>
+        <button
+          className="mt-2 ml-4 px-4 py-2 bg-red-500 text-white rounded"
+          onClick={clearOrder}
+        >
+          Clear Order
+        </button>
+      </div>
     </div>
   );
 }
