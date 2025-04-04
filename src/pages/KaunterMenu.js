@@ -119,7 +119,7 @@ const KaunterMenu = () => {
             <p><strong>订单编号:</strong> {order.orderId}</p>
             <p><strong>Device:</strong> {order.deviceId}</p>
             <p><strong>时间:</strong> {order.time}</p>
-            <p><strong>总价:</strong> RM {order.total ? order.total.toFixed(2) : 'N/A'}</p> {/* 避免 null 或 undefined 错误 */}
+            <p><strong>总价:</strong> RM {order.total ? order.total.toFixed(2) : 'N/A'}</p> {/* 防止 null 或 undefined 错误 */}
             <p><strong>餐点:</strong></p>
             <ul>
               {Array.isArray(order.items) && order.items.length > 0 ? (
@@ -147,7 +147,6 @@ const KaunterMenu = () => {
       )}
     </div>
   );
-
 };
 
 export default KaunterMenu;
