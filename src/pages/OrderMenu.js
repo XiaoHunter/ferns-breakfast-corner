@@ -30,16 +30,18 @@ export default function OrderMenu() {
 
   const getTotal = () => {
     let packedIncluded = false;
-    let sum = Object.entries(order).reduce((total, [key, item]) => {
+    let sum = 0;
+    for (const [key, item] of Object.entries(order)) {
       const drink = drinks.find((d) => d.name === key.split("-")[0]);
       const temp = key.includes("cold") ? drink.cold : drink.hot;
-      const add = 0; if (item.packed) packedIncluded = true;
-      return sum + item.qty * (temp + add);
-    return total + item.qty * (temp + add);
-  }, 0);
+      if (item.packed) packedIncluded = true;
+      sum += item.qty * temp;
+    }
   if (packedIncluded) sum += 0.2;
   return sum.toFixed(2);
 }
+
+// force git push
 
   const clearOrder = () => setOrder({});
   const handleRequestBill = () => {
