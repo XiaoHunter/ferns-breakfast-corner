@@ -109,9 +109,7 @@ const KaunterMenu = () => {
   return (
     <div style={{ padding: "20px" }}>
       <h1>🧾 Kaunter Order List</h1>
-      {loading ? (
-        <p>⏳ 数据加载中...</p>  // 加载时显示的提示
-      ) : orders && orders.length === 0 ? (
+      {orders && orders.length === 0 ? (
         <p>📂 没有可用的订单</p>  // 没有数据时显示的提示
       ) : (
         orders.map((order, index) => (
