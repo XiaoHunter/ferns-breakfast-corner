@@ -67,21 +67,15 @@ export default function OrderMenu() {
       total: getTotal(),
     };
 
-    const baseURL = process.env.NODE_ENV === "production"
-      ? "https://order.fernsbreakfast.com"
-      : "http://localhost:3000";
-
-    fetch(`${baseURL}/api/send-order`, {
+    fetch("https://ferns-breakfast-corner.com/send-order.php", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
     })
       .then((res) => res.json())
       .then((res) => {
         if (res.status === "success") {
-          alert("✅ 已成功送出订单！订单编号：" + res.orderId);
+          alert("✅ 已成功送出订单！订单编号: " + res.orderId);
           clearOrder();
         } else {
           alert("❌ 提交失败");
@@ -140,7 +134,7 @@ export default function OrderMenu() {
         <ul className="mb-2">
           {Object.entries(order).map(([key, item]) => (
             <li key={key}>
-              {key.toUpperCase().replace(/-/g, " ").replace("PACKED", "（打包）")} x {item.qty}
+              {key.replace(/-/g, " ").toUpperCase()} x {item.qty}
             </li>
           ))}
         </ul>
