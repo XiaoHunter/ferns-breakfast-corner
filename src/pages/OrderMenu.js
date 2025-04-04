@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 
 const drinks = [
@@ -37,11 +36,9 @@ export default function OrderMenu() {
       if (item.packed) packedIncluded = true;
       sum += item.qty * temp;
     }
-  if (packedIncluded) sum += 0.2;
-  return sum.toFixed(2);
-}
-
-// force git push
+    if (packedIncluded) sum += 0.2;
+    return sum.toFixed(2);
+  };
 
   const clearOrder = () => setOrder({});
   const handleRequestBill = () => {
@@ -75,22 +72,27 @@ export default function OrderMenu() {
           alert("❌ 提交失败");
         }
       });
-
-    // 之后可发送到后端或广播给其他页面
   };
 
   return (
     <div className="p-4 bg-yellow-100 min-h-screen">
       <h1 className="text-2xl font-bold mb-4">🧋 Order Menu</h1>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-        {drinks.map((drink) => (
+        {drinks.map((drink) =>
           ["hot", "cold"].map((type) => {
             const key = drink.name + "-" + type;
             const item = order[key];
             return (
               <div key={key} className="bg-white p-4 rounded shadow">
-                <h2 className="font-semibold text-lg">{drink.cn} ({drink.name}) - {type.toUpperCase()}</h2>
-                <p>RM {type === "hot" ? drink.hot.toFixed(2) : drink.cold.toFixed(2)}</p>
+                <h2 className="font-semibold text-lg">
+                  {drink.cn} ({drink.name}) - {type.toUpperCase()}
+                </h2>
+                <p>
+                  RM{" "}
+                  {type === "hot"
+                    ? drink.hot.toFixed(2)
+                    : drink.cold.toFixed(2)}
+                </p>
                 <label className="block my-1">
                   <input
                     type="checkbox"
@@ -108,17 +110,26 @@ export default function OrderMenu() {
                   打包 (+RM0.20)
                 </label>
                 <div className="flex gap-2 items-center mt-2">
-                  <button className="bg-red-400 px-2 text-white rounded" onClick={() => updateQty(key, -1)}>-</button>
+                  <button
+                    className="bg-red-400 px-2 text-white rounded"
+                    onClick={() => updateQty(key, -1)}
+                  >
+                    -
+                  </button>
                   <span>{item?.qty || 0}</span>
-                  <button className="bg-green-400 px-2 text-white rounded" onClick={() => updateQty(key, 1)}>+</button>
+                  <button
+                    className="bg-green-400 px-2 text-white rounded"
+                    onClick={() => updateQty(key, 1)}
+                  >
+                    +
+                  </button>
                 </div>
               </div>
             );
           })
-        ))}
+        )}
       </div>
 
-      {/* Bill Summary */}
       {Object.keys(order).length > 0 && (
         <div className="mt-6 bg-white p-4 rounded shadow">
           <h2 className="text-lg font-bold mb-2">🧾 当前订单</h2>
@@ -127,15 +138,26 @@ export default function OrderMenu() {
               const [name, type] = key.split("-");
               return (
                 <li key={key}>
-                  {name} ({type.toUpperCase()}) x {item.qty} {item.packed ? "【打包】" : ""}
+                  {name} ({type.toUpperCase()}) x {item.qty}{" "}
+                  {item.packed ? "【打包】" : ""}
                 </li>
               );
             })}
           </ul>
           <p className="mt-2 text-right font-bold">总价: RM {getTotal()}</p>
           <div className="flex justify-end gap-2 mt-4">
-            <button onClick={clearOrder} className="bg-gray-400 text-white px-3 py-1 rounded">清空</button>
-            <button onClick={handleRequestBill} className="bg-blue-600 text-white px-3 py-1 rounded">请求账单</button>
+            <button
+              onClick={clearOrder}
+              className="bg-gray-400 text-white px-3 py-1 rounded"
+            >
+              清空
+            </button>
+            <button
+              onClick={handleRequestBill}
+              className="bg-blue-600 text-white px-3 py-1 rounded"
+            >
+              请求账单
+            </button>
           </div>
         </div>
       )}
