@@ -5,6 +5,7 @@ export default function OrderMenu() {
   const [selectedCategory, setSelectedCategory] = useState("");
   const [order, setOrder] = useState({});
   const [myOrders, setMyOrders] = useState([]);
+  const [typeStatus, setTypeStatus] = useState({});
   const [noodleStatus, setNoodleStatus] = useState({});
   const [flavorStatus, setFlavorStatus] = useState({});
   const [packedStatus, setPackedStatus] = useState({});
@@ -92,12 +93,16 @@ export default function OrderMenu() {
     });
   }, [menu]);
 
+  const updateType = (itemName, newType) => {
+    setTypeStatus((prev) => ({ ...prev, [itemName]: newType }));
+  };
+
   const updateQty = (item, type, delta) => {
     const packed = packedStatus[`${item.name}-${type}`] || false;
     const addons = addonsStatus[`${item.name}-${type}`] || [];
     const flavor = flavorStatus[`${item.name}-${type}`] || "";
     const noodle = noodleStatus[`${item.name}-${type}`] || "";
-    const key = item.name + "-" + type + (packed ? "-packed" : "") + (addons.length ? "-addons" : "");
+    const key = `${item.name}-${type}-${flavor}-${noodle}${packed ? "-packed" : ""}${addons.length ? "-addons" : ""}`;
 
     setOrder((prev) => {
       const qty = (prev[key]?.qty || 0) + delta;
@@ -278,7 +283,7 @@ export default function OrderMenu() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {menu[selectedCategory].flatMap((item) => {
                 const isDrink = selectedCategory.startsWith("饮料");
-                const types = isDrink ? ["hot", "cold"] : ["standard"];
+                const types = isDrink ? ["hot"] : ["standard"];
 
                 return types.map((type) => {
                   const key = `${item.name}-${type}`;
@@ -321,6 +326,29 @@ export default function OrderMenu() {
                         </div>
                       )}
 
+                      {isDrink && (
+                        <div className="mt-1">
+                          <label>
+                            <input
+                              type="radio"
+                              name={`type-${item.name}`}
+                              value="hot"
+                              checked={type === "hot"}
+                              onChange={() => updateType(item.name, "hot")}
+                            /> 热
+                          </label>
+                          <label className="ml-2">
+                            <input
+                              type="radio"
+                              name={`type-${item.name}`}
+                              value="cold"
+                              checked={type === "cold"}
+                              onChange={() => updateType(item.name, "cold")}
+                            /> 冷
+                          </label>
+                        </div>
+                      )}
+
                       {item.types && (
                         <div className="mt-2">
                           <label className="block">选择口味:</label>
@@ -353,7 +381,7 @@ export default function OrderMenu() {
                         <div className="mt-2">
                           <label className="block">选择面粉:</label>
                           <select
-                            value={order[key]?.noodle || noodleStatus[key] || ""}
+                            value={order[key]?.noodle ?? noodleStatus[key] ?? ""}
                             onChange={(e) => handleNoodleChange(item, type, e.target.value)}
                           >
                             <option value="">请选择面粉</option>
