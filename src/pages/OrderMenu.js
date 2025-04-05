@@ -31,21 +31,23 @@ export default function OrderMenu() {
   }, []);
 
   useEffect(() => {
-    const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
-    fetch(`https://ferns-breakfast-corner.com/orders/orders-${today}.json`)
-      .then((res) => {
-        if (!res.ok) throw new Error("订单文件不存在");
-        return res.json();
-      })
-      .then((data) => {
-        const myOrdersOnly = data.filter((o) => o.deviceId === deviceId);
-        setMyOrders(myOrdersOnly);
-      })
-      .catch((err) => {
-        console.warn("未能载入订单：", err.message);
-        setMyOrders([]);
-      });
-  }, []);
+    const fetchOrders = () => {
+      const today = new Date().toISOString().slice(0, 10);
+      fetch(`https://ferns-breakfast-corner.com/orders/orders-${today}.json`)
+        .then(res => res.json())
+        .then(data => {
+          const myOrdersOnly = data.filter(o => o.deviceId === deviceId);
+          setMyOrders(myOrdersOnly);
+        })
+        .catch(() => setMyOrders([])); // 不存在时不挂掉
+    };
+
+    fetchOrders(); // 第一次加载
+
+    const interval = setInterval(fetchOrders, 5000); // 每 5 秒刷新一次
+
+    return () => clearInterval(interval); // 组件卸载时清除定时器
+  }, [deviceId]);
 
   const updateQty = (item, type, delta) => {
     const packed = packedStatus[`${item.name}-${type}`] || false;
