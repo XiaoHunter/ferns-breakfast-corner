@@ -26,7 +26,11 @@ const KaunterMenu = () => {
 
   const fetchOrders = () => {
     if (!token) return;
-    fetch("https://ferns-breakfast-corner.com/api/orders.json", {
+
+    const today = new Date().toISOString().split("T")[0];
+    const url = `https://ferns-breakfast-corner.com/api/orders/orders-${today}.json`;
+    
+    fetch(url, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => res.json())
