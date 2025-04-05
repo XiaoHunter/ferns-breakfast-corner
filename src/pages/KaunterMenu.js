@@ -170,6 +170,24 @@ const KaunterMenu = () => {
     window.location.href = `/order?edit=${orderId}`;
   };
 
+  if (!token) {
+    return (
+      <div style={{ padding: "20px" }}>
+        <h2>🔐 Kaunter 登录</h2>
+        <input
+          type="password"
+          placeholder="输入密码"
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          style={{ padding: "8px", marginRight: "10px" }}
+        />
+        <button onClick={login} style={{ padding: "8px" }}>
+          登录
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div style={{ padding: "20px" }}>
       <h1>🧾 Kaunter Order List</h1>
