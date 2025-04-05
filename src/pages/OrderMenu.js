@@ -47,9 +47,9 @@ export default function OrderMenu() {
 
     fetchOrders(); // 第一次加载
 
-    const interval = setInterval(fetchOrders, 5000); // 每 5 秒刷新一次
+    //const interval = setInterval(fetchOrders, 5000); // 每 5 秒刷新一次
 
-    return () => clearInterval(interval); // 组件卸载时清除定时器
+    //return () => clearInterval(interval); // 组件卸载时清除定时器
   }, [deviceId]);
 
   useEffect(() => {
