@@ -276,7 +276,7 @@ export default function OrderMenu() {
                   return (
                     <div key={key} className="bg-white p-4 rounded shadow">
                       <h2 className="font-semibold text-lg">
-                        {item.chineseName}
+                        {item.chineseName}{item.name}
                       </h2>
                       <p>RM {price.toFixed(2)}</p>
                       <label className="block mt-1">
