@@ -4,6 +4,7 @@ export default function OrderMenu() {
   const [menu, setMenu] = useState({});
   const [selectedCategory, setSelectedCategory] = useState("");
   const [order, setOrder] = useState({});
+  const [myOrders, setMyOrders] = useState([]);
   const [packedStatus, setPackedStatus] = useState({});
   const [addonsStatus, setAddonsStatus] = useState({});
   const [loading, setLoading] = useState(true);
@@ -26,6 +27,23 @@ export default function OrderMenu() {
         setMenu(categorized);
         setSelectedCategory(Object.keys(categorized)[0]);
         setLoading(false);ks
+      });
+  }, []);
+
+  useEffect(() => {
+    const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+    fetch(`https://ferns-breakfast-corner.com/orders/orders-${today}.json`)
+      .then((res) => {
+        if (!res.ok) throw new Error("订单文件不存在");
+        return res.json();
+      })
+      .then((data) => {
+        const myOrdersOnly = data.filter((o) => o.deviceId === deviceId);
+        setMyOrders(myOrdersOnly);
+      })
+      .catch((err) => {
+        console.warn("未能载入订单：", err.message);
+        setMyOrders([]);
       });
   }, []);
 
@@ -123,12 +141,12 @@ export default function OrderMenu() {
   return (
     <div className="flex min-h-screen">
       {/* Sidebar */}
-      <div className="w-32 bg-yellow-200 border-r p-2 space-y-2 text-center text-sm">
+      <div className="w-32 bg-yellow-200 border-r p-2 flex flex-col space-y-2 text-center text-sm">
         <div className="flex justify-center items-center p-4">
           <img
             src="/ferns-logo.png" // 确保 logo 图像放在 public/logo.png
             alt="Fern's Breakfast Corner Logo"
-            className="w-32 md:w-40 lg:w-48 object-contain"
+            className="w-full h-auto object-contain"
           />
         </div>
         {Object.keys(menu).map((cat) => (
@@ -162,6 +180,9 @@ export default function OrderMenu() {
                   const base = isDrink ? (type === "hot" ? item.hotPrice : item.coldPrice) : item.price;
                   const addonTotal = addons.reduce((sum, a) => sum + a.price, 0);
                   const price = base + (isDrink && packed ? 0.2 : 0) + addonTotal;
+                  const base = isDrink
+                    ? (type === "hot" ? Number(item.hotPrice) : Number(item.coldPrice))
+                    : Number(item.price);
 
                   return (
                     <div key={orderKey} className="bg-white p-4 rounded shadow">
@@ -222,5 +243,28 @@ export default function OrderMenu() {
         </div>
       </div>
     </div>
+
+    {myOrders.length > 0 && (
+      <div className="mt-10 p-4 bg-white rounded shadow">
+        <h2 className="text-xl font-semibold mb-2">📜 我的订单</h2>
+        {myOrders.map((o, idx) => (
+          <div key={idx} className="mb-2 border p-2 rounded">
+            <div>订单编号: {o.orderId}</div>
+            <div>时间: {new Date(o.time).toLocaleString()}</div>
+            <div>总价: RM {o.total}</div>
+            <div className="text-sm text-gray-600">
+              餐点:
+              <ul className="list-disc pl-5">
+                {o.items.map((i, iIdx) => (
+                  <li key={iIdx}>
+                    {i.name} - {i.type}{i.packed ? "（打包）" : ""} x {i.qty}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        ))}
+      </div>
+    )}
   );
 }
