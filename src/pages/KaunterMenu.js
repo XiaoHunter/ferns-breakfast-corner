@@ -13,12 +13,13 @@ const KaunterMenu = () => {
     const malaysiaTime = new Date(now.getTime() + (malaysiaOffset + localOffset) * 60 * 1000);
     return malaysiaTime.toISOString().split("T")[0];
   };
-  
+
   useEffect(() => {
     if (!token) return;
 
     const fetchOrders = () => {
       const today = getMalaysiaToday();
+      console.log("📦 Fetching", `orders-${today}.json`);
       fetch(`https://ferns-breakfast-corner.com/orders/orders-${today}.json?t=${Date.now()}`)
         .then((res) => res.json())
         .then((data) => setOrders(data.reverse()));
