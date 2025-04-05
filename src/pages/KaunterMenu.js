@@ -7,6 +7,21 @@ const KaunterMenu = () => {
   const [editingTable, setEditingTable] = useState(null);
   const [tableInputs, setTableInputs] = useState({});
 
+  useEffect(() => {
+    if (!token) return;
+
+    const fetchOrders = () => {
+      const today = new Date().toISOString().split("T")[0];
+      fetch(`https://ferns-breakfast-corner.com/orders/orders-${today}.json`)
+        .then((res) => res.json())
+        .then((data) => setOrders(data.reverse()));
+    };
+
+    fetchOrders();
+    const interval = setInterval(fetchOrders, 5000);
+    return () => clearInterval(interval);
+  }, [token]);
+
   const login = () => {
     fetch("https://ferns-breakfast-corner.com/api/kaunter-login.php", {
       method: "POST",
@@ -23,13 +38,6 @@ const KaunterMenu = () => {
       });
   };
 
-  useEffect(() => {
-    if (!token) return;
-    fetch("https://ferns-breakfast-corner.com/orders/orders-" + new Date().toISOString().split("T")[0] + ".json")
-      .then((res) => res.json())
-      .then((data) => setOrders(data.reverse()));
-  }, [token]);
-
   const updateSingleOrder = (order) => {
     fetch("https://ferns-breakfast-corner.com/api/update-order.php", {
       method: "POST",
@@ -40,10 +48,6 @@ const KaunterMenu = () => {
       .then((res) => {
         if (res.status === "success") {
           alert("✅ 更新成功");
-          const today = new Date().toISOString().split("T")[0];
-          fetch(`https://ferns-breakfast-corner.com/orders/orders-${today}.json`)
-            .then((res) => res.json())
-            .then((data) => setOrders(data.reverse()));
         } else {
           alert("❌ 更新失败: " + res.message);
         }
@@ -64,22 +68,18 @@ const KaunterMenu = () => {
     }
   };
 
-  const removeItem = (orderIndex, itemIndex) => {
+  const updateItemQty = (orderIndex, itemIndex, delta) => {
     const updatedOrder = { ...orders[orderIndex] };
-    updatedOrder.items = [...updatedOrder.items]; // clone items
-    updatedOrder.items.splice(itemIndex, 1);
+    updatedOrder.items = [...updatedOrder.items];
+    const item = { ...updatedOrder.items[itemIndex] };
+    item.qty = Math.max(0, item.qty + delta);
+    updatedOrder.items[itemIndex] = item;
 
-    // 重新计算总价
     let newTotal = 0;
     updatedOrder.items.forEach((item) => {
-      const base =
-        item.type === "cold" ? item.coldPrice :
-        item.type === "hot" ? item.hotPrice :
-        item.price || 0;
-
+      const base = item.type === "cold" ? item.coldPrice : item.type === "hot" ? item.hotPrice : item.price || 0;
       const packedFee = item.packed ? 0.2 : 0;
       const addonTotal = (item.addons || []).reduce((sum, a) => sum + a.price, 0);
-
       newTotal += item.qty * (base + packedFee + addonTotal);
     });
     updatedOrder.total = Number(newTotal.toFixed(2));
@@ -107,15 +107,8 @@ const KaunterMenu = () => {
     return (
       <div className="p-4">
         <h2 className="text-xl mb-2">🔒 请输入 Kaunter 密码</h2>
-        <input
-          type="password"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          className="border p-2"
-        />
-        <button onClick={login} className="ml-2 bg-blue-500 text-white px-4 py-2 rounded">
-          登录
-        </button>
+        <input type="password" value={input} onChange={(e) => setInput(e.target.value)} className="border p-2" />
+        <button onClick={login} className="ml-2 bg-blue-500 text-white px-4 py-2 rounded">登录</button>
       </div>
     );
   }
@@ -129,12 +122,7 @@ const KaunterMenu = () => {
           <p><strong>Table:</strong> {
             editingTable === order.orderId ? (
               <>
-                <input
-                  type="text"
-                  value={tableInputs[order.orderId] || ""}
-                  onChange={(e) => setTableInputs((prev) => ({ ...prev, [order.orderId]: e.target.value }))}
-                  className="border px-2 ml-2"
-                />
+                <input type="text" value={tableInputs[order.orderId] || ""} onChange={(e) => setTableInputs((prev) => ({ ...prev, [order.orderId]: e.target.value }))} className="border px-2 ml-2" />
                 <button onClick={() => confirmTableEdit(index, order.orderId)} className="ml-1 text-green-600">✅</button>
                 <button onClick={() => cancelTableEdit(order.orderId)} className="ml-1 text-red-600">❌</button>
               </>
@@ -153,12 +141,10 @@ const KaunterMenu = () => {
               <li key={i}>
                 {item.name} x {item.qty} {item.packed ? "（打包）" : ""}
                 {order.status !== "completed" && (
-                  <button
-                    onClick={() => removeItem(index, i)}
-                    className="text-red-500 ml-2 text-sm"
-                  >
-                    删除
-                  </button>
+                  <>
+                    <button onClick={() => updateItemQty(index, i, -1)} className="ml-2 px-2">➖</button>
+                    <button onClick={() => updateItemQty(index, i, 1)} className="ml-1 px-2">➕</button>
+                  </>
                 )}
               </li>
             ))}
@@ -170,15 +156,8 @@ const KaunterMenu = () => {
           ) : (
             <div>
               <button onClick={() => markAsPaid(index, "cash")}>💵 现金付款</button>
-              <button onClick={() => markAsPaid(index, "ewallet") } style={{ marginLeft: 10 }}>
-                📱 电子钱包付款
-              </button>
-              <button
-                onClick={() => cancelOrder(index)}
-                style={{ marginLeft: 10, color: "red" }}
-              >
-                ❌ 取消订单
-              </button>
+              <button onClick={() => markAsPaid(index, "ewallet")} style={{ marginLeft: 10 }}>📱 电子钱包付款</button>
+              <button onClick={() => cancelOrder(index)} style={{ marginLeft: 10, color: "red" }}>❌ 取消订单</button>
             </div>
           )}
         </div>
