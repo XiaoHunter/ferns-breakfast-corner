@@ -241,7 +241,7 @@ export default function OrderMenu() {
           </div>
         </div>
       </div>
-      
+
     {myOrders.length > 0 && (
       <div className="mt-10 p-4 bg-white rounded shadow">
         <h2 className="text-xl font-semibold mb-2">📜 我的订单</h2>
@@ -262,7 +262,6 @@ export default function OrderMenu() {
             </div>
           </div>
         ))}
-      </div>
     )}
   );
 }
