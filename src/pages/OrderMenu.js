@@ -5,6 +5,8 @@ export default function OrderMenu() {
   const [selectedCategory, setSelectedCategory] = useState("");
   const [order, setOrder] = useState({});
   const [myOrders, setMyOrders] = useState([]);
+  const [noodleStatus, setNoodleStatus] = useState({});
+  const [flavorStatus, setFlavorStatus] = useState({});
   const [packedStatus, setPackedStatus] = useState({});
   const [addonsStatus, setAddonsStatus] = useState({});
   const [loading, setLoading] = useState(true);
@@ -49,6 +51,26 @@ export default function OrderMenu() {
     return () => clearInterval(interval); // 组件卸载时清除定时器
   }, [deviceId]);
 
+  useEffect(() => {
+    // 初始化默认口味和面粉
+    const initialNoodleStatus = {};
+    const initialFlavorStatus = {};
+
+    Object.values(menu).flat().forEach((item) => {
+      const key = `${item.name}-STANDARD`;
+      if (item.category === "粿条汤") {
+        initialNoodleStatus[key] = "Koay Teow";
+        initialFlavorStatus[key] = "汤";
+      } else if (item.category === "云吞面") {
+        initialNoodleStatus[key] = "Wantan Mee";
+        initialFlavorStatus[key] = "干";
+      }
+    });
+
+    setNoodleStatus(initialNoodleStatus);
+    setFlavorStatus(initialFlavorStatus);
+  }, [menu]);
+
   const updateQty = (item, type, delta) => {
     const packed = packedStatus[`${item.name}-${type}`] || false;
     const addons = addonsStatus[`${item.name}-${type}`] || [];
@@ -83,6 +105,29 @@ export default function OrderMenu() {
         [type]: value,
       },
     });
+  };
+
+  const addToOrder = (item, type, qty) => {
+    const key = `${item.name}-${type}`;
+    const flavor = flavorStatus[key] || ""; // 加入口味
+    const noodle = noodleStatus[key] || ""; // 加入面粉
+    const packed = packedStatus[key] || false;
+    const addons = addonsStatus[key] || [];
+
+    const updatedItem = {
+      name: item.name,
+      type,
+      qty,
+      packed,
+      flavor,
+      noodle,
+      addons,
+    };
+
+    setOrder((prev) => ({
+      ...prev,
+      [key]: updatedItem,
+    }));
   };
 
   const togglePacked = (item, type) => {
@@ -154,6 +199,8 @@ export default function OrderMenu() {
       type: item.type ? item.type.toUpperCase() : "STANDARD",
       qty: item.qty,
       packed: item.packed,
+      flavor: item.flavor || "",
+      noodle: item.noodle || "",
       addons: item.addons || [],
     }));
 
@@ -326,6 +373,8 @@ export default function OrderMenu() {
                 {item.name} - {item.type ? item.type.toUpperCase() : "STANDARD"}
                 {item.packed ? "（打包）" : ""}
                 {item.addons?.length ? " + " + item.addons.map((a) => a.name).join(", ") : ""} x {item.qty}
+                {item.flavor && <div>口味: {item.flavor}</div>}
+                {item.noodle && <div>面粉: {item.noodle}</div>}
               </li>
             ))}
           </ul>
@@ -351,6 +400,8 @@ export default function OrderMenu() {
                     {o.items.map((i, iIdx) => (
                       <li key={iIdx}>
                         {i.name} - {i.type}{i.packed ? "（打包）" : ""} x {i.qty}
+                        {i.flavor && <div>口味: {i.flavor}</div>}
+                        {i.noodle && <div>面粉: {i.noodle}</div>}
                       </li>
                     ))}
                   </ul>
