@@ -1,23 +1,26 @@
-
-import React, { useState } from "react";
-
-const drinks = [
-  { name: "Kopi O", cn: "咖啡乌", hot: 1.4, cold: 1.8 },
-  { name: "Teh", cn: "茶", hot: 1.8, cold: 2.3 },
-  { name: "Milo", cn: "美禄", hot: 2.8, cold: 3.0 },
-  { name: "Nescafe O", cn: "雀巢咖啡乌", hot: 2.5, cold: 2.7 },
-  { name: "White Coffee", cn: "白咖啡", hot: 2.0, cold: 2.0 },
-  { name: "Can Drink", cn: "罐装饮料", hot: 2.6, cold: 2.8 },
-  { name: "Ice Kosong", cn: "白开水", hot: 0.5, cold: 0.5 },
-];
+import React, { useEffect, useState } from "react";
 
 export default function OrderMenu() {
+  const [drinks, setDrinks] = useState([]);
   const [order, setOrder] = useState({});
-  const [packedStatus, setPackedStatus] = useState({}); // store checkbox state
+  const [packedStatus, setPackedStatus] = useState({});
+  const [addonsStatus, setAddonsStatus] = useState({});
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("https://ferns-breakfast-corner.com/items/orders-items")
+      .then((res) => res.json())
+      .then((data) => {
+        setDrinks(data);
+        setLoading(false);
+      });
+  }, []);
 
   const updateQty = (drink, type, delta) => {
     const packed = packedStatus[`${drink.name}-${type}`] || false;
-    const key = drink.name + "-" + type + (packed ? "-packed" : "");
+    const addons = addonsStatus[`${drink.name}-${type}`] || [];
+
+    const key = drink.name + "-" + type + (packed ? "-packed" : "") + (addons.length ? "-addons" : "");
     setOrder((prev) => {
       const qty = (prev[key]?.qty || 0) + delta;
       if (qty <= 0) {
@@ -26,7 +29,13 @@ export default function OrderMenu() {
       }
       return {
         ...prev,
-        [key]: { ...prev[key], qty },
+        [key]: {
+          name: drink.name,
+          type,
+          packed,
+          addons,
+          qty,
+        },
       };
     });
   };
@@ -37,31 +46,42 @@ export default function OrderMenu() {
     setPackedStatus({ ...packedStatus, [statusKey]: newStatus });
   };
 
+  const toggleAddon = (drink, type, addon) => {
+    const key = `${drink.name}-${type}`;
+    const current = addonsStatus[key] || [];
+    const exists = current.find((a) => a.name === addon.name);
+    const updated = exists
+      ? current.filter((a) => a.name !== addon.name)
+      : [...current, addon];
+
+    setAddonsStatus({ ...addonsStatus, [key]: updated });
+  };
+
   const getTotal = () => {
     let sum = 0;
-    for (const [key, item] of Object.entries(order)) {
-      const [name, type, packed] = key.split("-");
-      const drink = drinks.find((d) => d.name === name);
-      const price = type === "cold" ? drink.cold : drink.hot;
-      const packedFee = packed === "packed" ? 0.2 : 0;
-      sum += item.qty * (price + packedFee);
+    for (const item of Object.values(order)) {
+      const drink = drinks.find((d) => d.name === item.name);
+      if (!drink) continue;
+      const basePrice = item.type === "cold" ? drink.coldPrice : drink.hotPrice;
+      const packedFee = item.packed ? 0.2 : 0;
+      const addonTotal = item.addons?.reduce((s, a) => s + a.price, 0) || 0;
+      sum += item.qty * (basePrice + packedFee + addonTotal);
     }
     return sum.toFixed(2);
   };
 
   const clearOrder = () => setOrder({});
-  
+
   const handleRequestBill = () => {
     const deviceId = "device-" + Math.random().toString(36).substring(2, 8);
-    const items = Object.entries(order).map(([key, item]) => {
-      const [name, type, packed] = key.split("-");
-      return {
-        name,
-        type: type.toUpperCase(),
-        qty: item.qty,
-        packed: packed === "packed",
-      };
-    });
+    const items = Object.values(order).map((item) => ({
+      name: item.name,
+      type: item.type.toUpperCase(),
+      qty: item.qty,
+      packed: item.packed,
+      addons: item.addons || [],
+    }));
+
     const data = {
       deviceId,
       items,
@@ -71,9 +91,9 @@ export default function OrderMenu() {
     fetch("https://ferns-breakfast-corner.com/api/send-order.php", {
       method: "POST",
       headers: {
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
       },
-      body: JSON.stringify(data)
+      body: JSON.stringify(data),
     })
       .then((res) => res.json())
       .then((res) => {
@@ -86,6 +106,8 @@ export default function OrderMenu() {
       });
   };
 
+  if (loading) return <div className="p-4">🕒 正在加载菜单...</div>;
+
   return (
     <div className="p-4 bg-yellow-100 min-h-screen">
       <h1 className="text-2xl font-bold mb-4">🧋 Order Menu</h1>
@@ -94,13 +116,17 @@ export default function OrderMenu() {
           ["hot", "cold"].map((type) => {
             const statusKey = `${drink.name}-${type}`;
             const packed = packedStatus[statusKey] || false;
-            const key = drink.name + "-" + type + (packed ? "-packed" : "");
+            const addons = addonsStatus[statusKey] || [];
+            const key = drink.name + "-" + type + (packed ? "-packed" : "") + (addons.length ? "-addons" : "");
             const item = order[key];
-            const price = (type === "hot" ? drink.hot : drink.cold) + (packed ? 0.2 : 0);
+            const base = type === "hot" ? drink.hotPrice : drink.coldPrice;
+            const addonTotal = addons.reduce((sum, a) => sum + a.price, 0);
+            const price = base + (packed ? 0.2 : 0) + addonTotal;
+
             return (
               <div key={key} className="bg-white p-4 rounded shadow">
                 <h2 className="font-semibold text-lg">
-                  {drink.cn} ({drink.name}) - {type.toUpperCase()}
+                  {drink.chineseName} ({drink.name}) - {type.toUpperCase()}
                 </h2>
                 <p>RM {price.toFixed(2)}</p>
                 <label className="block mt-1">
@@ -111,6 +137,20 @@ export default function OrderMenu() {
                   />{" "}
                   打包 (+RM0.20)
                 </label>
+                {drink.addons?.length > 0 && (
+                  <div className="mt-1">
+                    {drink.addons.map((addon) => (
+                      <label key={addon.name} className="block text-sm">
+                        <input
+                          type="checkbox"
+                          checked={addons.some((a) => a.name === addon.name)}
+                          onChange={() => toggleAddon(drink, type, addon)}
+                        />{" "}
+                        {addon.name} (+RM{addon.price.toFixed(2)})
+                      </label>
+                    ))}
+                  </div>
+                )}
                 <div className="flex gap-2 mt-2">
                   <button
                     className="px-3 py-1 bg-gray-300 rounded"
@@ -135,9 +175,14 @@ export default function OrderMenu() {
       <div className="mt-6 p-4 bg-white rounded shadow">
         <h2 className="text-xl font-semibold mb-2">🧾 当前订单</h2>
         <ul className="mb-2">
-          {Object.entries(order).map(([key, item]) => (
-            <li key={key}>
-              {key.toUpperCase().replace(/-/g, " ").replace("PACKED", "（打包）")} x {item.qty}
+          {Object.values(order).map((item, idx) => (
+            <li key={idx}>
+              {item.name} - {item.type.toUpperCase()}
+              {item.packed ? "（打包）" : ""}
+              {item.addons?.length
+                ? " + " + item.addons.map((a) => a.name).join(", ")
+                : ""}{" "}
+              x {item.qty}
             </li>
           ))}
         </ul>
