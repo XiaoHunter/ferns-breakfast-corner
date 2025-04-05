@@ -47,9 +47,9 @@ export default function OrderMenu() {
 
     fetchOrders(); // 第一次加载
 
-    //const interval = setInterval(fetchOrders, 5000); // 每 5 秒刷新一次
+    const interval = setInterval(fetchOrders, 5000); // 每 5 秒刷新一次
 
-    //return () => clearInterval(interval); // 组件卸载时清除定时器
+    return () => clearInterval(interval); // 组件卸载时清除定时器
   }, [deviceId]);
 
   useEffect(() => {
@@ -126,9 +126,41 @@ export default function OrderMenu() {
   };
 
   const togglePacked = (item, type) => {
-    const key = `${item.name}-${type}`;
-    const newStatus = !packedStatus[key];
-    setPackedStatus({ ...packedStatus, [key]: newStatus });
+    const keyBase = `${item.name}-${type}`;
+    const newPacked = !packedStatus[keyBase];
+
+    // 先更新 packedStatus
+    setPackedStatus((prev) => ({ ...prev, [keyBase]: newPacked }));
+
+    // 再手动调用 updateQty，传入最新 packed 值
+    const isNoodleCategory = item.category === "云吞面" || item.category === "粿条汤";
+    const flavor = flavorStatus[keyBase] || (isNoodleCategory ? (item.category === "云吞面" ? "干" : "汤") : "");
+    const noodle = noodleStatus[keyBase] ?? (item.category === "云吞面" ? "Wantan Mee" : "Koay Teow");
+    const addons = addonsStatus[keyBase] || [];
+
+    const flavorPart = item.noodles || item.types ? `-${flavor}` : "";
+    const noodlePart = item.noodles ? `-${noodle}` : "";
+    const packedPart = newPacked ? "-packed" : "";
+    const addonPart = addons.length ? "-addons" : "";
+
+    const key = `${item.name}-${type}${flavorPart}${noodlePart}${packedPart}${addonPart}`;
+
+    setOrder((prev) => {
+      const qty = prev[key]?.qty || 0;
+      if (qty <= 0) return prev;
+      return {
+        ...prev,
+        [key]: {
+          name: item.name,
+          type,
+          packed: newPacked, // 👈 用新值
+          addons,
+          qty,
+          flavor,
+          noodle,
+        },
+      };
+    });
   };
 
   const toggleAddon = (item, type, addon) => {
