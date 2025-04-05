@@ -85,6 +85,12 @@ const KaunterMenu = () => {
     updatedOrder.total = Number(newTotal.toFixed(2));
 
     updateSingleOrder(updatedOrder);
+
+    setOrders((prevOrders) => {
+      const newOrders = [...prevOrders];
+      newOrders[orderIndex] = updatedOrder;
+      return newOrders;
+    });
   };
 
   const startEditingTable = (orderId, current) => {
@@ -93,7 +99,11 @@ const KaunterMenu = () => {
   };
 
   const confirmTableEdit = (index, orderId) => {
-    const updatedOrder = { ...orders[index], table: tableInputs[orderId] };
+    const order = orders[index];
+    const updatedOrder = {
+      ...order,
+      table: tableInputs[orderId] || order.deviceId
+    };
     updateSingleOrder(updatedOrder);
     setEditingTable(null);
   };
