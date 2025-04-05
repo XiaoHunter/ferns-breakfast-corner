@@ -128,17 +128,7 @@ export default function OrderMenu() {
     const key = `${item.name}-${type}`;
     const newPacked = !packedStatus[key];
     setPackedStatus((prev) => ({ ...prev, [key]: newPacked }));
-
-    setOrder((prevOrder) => {
-      const currentItem = prevOrder[key] || {};
-      return {
-        ...prevOrder,
-        [key]: {
-          ...currentItem,
-          packed: newPacked,
-        },
-      };
-    });
+    updateQty(item, type, 0); // 刷新新的组合 key
   };
 
   const toggleAddon = (item, type, addon) => {
