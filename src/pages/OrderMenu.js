@@ -103,7 +103,7 @@ export default function OrderMenu() {
         [key]: {
           name: item.name,
           type,
-          packed，
+          packed,
           addons,
           qty,
           flavor,
