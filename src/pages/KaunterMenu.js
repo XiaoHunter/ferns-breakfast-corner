@@ -57,8 +57,20 @@ const KaunterMenu = () => {
   const markAsPaid = (index, method) => {
     const confirmText = method === "cash" ? "现金付款" : "电子钱包付款";
     if (!window.confirm(`确认要进行${confirmText}？`)) return;
-    const updatedOrder = { ...orders[index], status: "completed", payment: method };
+
+    const updatedOrder = {
+      ...orders[index],
+      status: "completed",
+      payment: method
+    };
+
     updateSingleOrder(updatedOrder);
+
+    setOrders((prevOrders) => {
+      const newOrders = [...prevOrders];
+      newOrders[index] = updatedOrder;
+      return newOrders;
+    });
   };
 
   const cancelOrder = (index) => {
