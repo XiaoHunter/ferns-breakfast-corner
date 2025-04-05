@@ -71,9 +71,34 @@ export default function OrderMenu() {
     setFlavorStatus(initialFlavorStatus);
   }, [menu]);
 
+  useEffect(() => {
+    if (!menu) return;
+
+    const updated = {};
+    Object.entries(menu).forEach(([category, items]) => {
+      items.forEach((item) => {
+        const key = `${item.name}-${item.type}`;
+
+        // 默认口味
+        if (item.flavors && flavorStatus[key]) {
+          updated[key] = { ...(updated[key] || {}), flavor: flavorStatus[key] };
+        }
+
+        // 默认面粉
+        if (item.noodles && noodleStatus[key]) {
+          updated[key] = { ...(updated[key] || {}), noodle: noodleStatus[key] };
+        }
+      });
+    });
+
+    setSelectionOptions(updated);
+  }, [menu]);
+
   const updateQty = (item, type, delta) => {
     const packed = packedStatus[`${item.name}-${type}`] || false;
     const addons = addonsStatus[`${item.name}-${type}`] || [];
+    const flavor = flavorStatus[`${item.name}-${type}`] || "";
+    const noodle = noodleStatus[`${item.name}-${type}`] || "";
     const key = item.name + "-" + type + (packed ? "-packed" : "") + (addons.length ? "-addons" : "");
 
     setOrder((prev) => {
@@ -90,7 +115,9 @@ export default function OrderMenu() {
           packed,
           addons,
           qty,
-        },
+          flavor,
+          noodle
+        }
       };
     });
   };
@@ -145,24 +172,12 @@ export default function OrderMenu() {
 
   const handleFlavorChange = (item, type, flavor) => {
     const key = `${item.name}-${type}`;
-    setOrder((prev) => ({
-      ...prev,
-      [key]: {
-        ...prev[key],
-        flavor,
-      },
-    }));
+    setFlavorStatus((prev) => ({ ...prev, [key]: flavor }));
   };
 
   const handleNoodleChange = (item, type, noodle) => {
     const key = `${item.name}-${type}`;
-    setOrder((prev) => ({
-      ...prev,
-      [key]: {
-        ...prev[key],
-        noodle,
-      },
-    }));
+    setNoodleStatus((prev) => ({ ...prev, [key]: noodle }));
   };
 
   const getTotal = () => {
@@ -317,7 +332,7 @@ export default function OrderMenu() {
                               name={`flavor-${item.name}-${type}`}
                               value="dry"
                               checked={
-                                (order[key]?.flavor || item.defaultFlavor || "dry") === "dry"
+                                (order[key]?.flavor || flavorStatus[key] || "dry") === "dry"
                               }
                               onChange={() => handleFlavorChange(item, type, "dry")}
                             /> 干
@@ -328,7 +343,7 @@ export default function OrderMenu() {
                               name={`flavor-${item.name}-${type}`}
                               value="soup"
                               checked={
-                                (order[key]?.flavor || item.defaultFlavor || "dry") === "soup"
+                                (order[key]?.flavor || flavorStatus[key] || "dry") === "soup"
                               }
                               onChange={() => handleFlavorChange(item, type, "soup")}
                             /> 汤
@@ -340,7 +355,7 @@ export default function OrderMenu() {
                         <div className="mt-2">
                           <label className="block">选择面粉:</label>
                           <select
-                            value={order[key]?.noodle || item.defaultNoodleType || ""}
+                            value={order[key]?.noodle || noodleStatus[key] || ""}
                             onChange={(e) => handleNoodleChange(item, type, e.target.value)}
                           >
                             <option value="">请选择面粉</option>
