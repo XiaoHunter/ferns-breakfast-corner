@@ -138,6 +138,8 @@ export default function OrderMenu() {
       });
   };
 
+
+
   if (loading) return <div className="p-4">🕒 正在加载菜单...</div>;
 
   return (
@@ -146,7 +148,7 @@ export default function OrderMenu() {
       <div className="w-32 bg-yellow-200 border-r p-2 flex flex-col space-y-2 text-center text-sm">
         <div className="flex justify-center items-center p-4">
           <img
-            src="/ferns-logo.png" // 确保 logo 图像放在 public/logo.png
+            src="/ferns-logo.png"
             alt="Fern's Breakfast Corner Logo"
             className="w-full h-auto object-contain"
           />
@@ -209,6 +211,44 @@ export default function OrderMenu() {
                               /> {addon.name} (+RM{addon.price.toFixed(2)})
                             </label>
                           ))}
+                        </div>
+                      )}
+                      
+                      {item.types && (
+                        <div className="mt-1">
+                          <label className="block font-medium">选择口味：</label>
+                          {item.types.map((t) => (
+                            <label key={t} className="inline-block mr-2">
+                              <input
+                                type="radio"
+                                name={`${item.name}-type`}
+                                value={t}
+                                checked={type === t}
+                                onChange={() => updateQty(item, t, 0)} // 切换 type
+                              /> {t === "dry" ? "干" : "汤"}
+                            </label>
+                          ))}
+                        </div>
+                      )}
+
+                      {item.noodles && (
+                        <div className="mt-1">
+                          <label className="block font-medium">选择面粉：</label>
+                          <select
+                            value={item.selectedNoodle || ""}
+                            onChange={(e) => {
+                              const selectedNoodle = item.noodles.find(n => n.name === e.target.value);
+                              toggleAddon(item, type, { name: selectedNoodle.name, price: 0 });
+                            }}
+                            className="border rounded px-2 py-1 text-sm"
+                          >
+                            <option value="">请选择面粉</option>
+                            {item.noodles.map((noodle) => (
+                              <option key={noodle.name} value={noodle.name}>
+                                {noodle.chineseName} ({noodle.name})
+                              </option>
+                            ))}
+                          </select>
                         </div>
                       )}
                       <div className="flex gap-2 mt-2">
