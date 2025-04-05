@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState, useRef, useMemo } from "react";
 
 export default function OrderMenu() {
   const [menu, setMenu] = useState({});
@@ -7,13 +7,13 @@ export default function OrderMenu() {
   const [packedStatus, setPackedStatus] = useState({});
   const [addonsStatus, setAddonsStatus] = useState({});
   const [loading, setLoading] = useState(true);
-  const deviceId = useRef(() => {
+  const deviceId = useMemo(() => {
     const stored = localStorage.getItem("deviceId");
     if (stored) return stored;
     const newId = "device-" + Math.random().toString(36).substring(2, 8);
     localStorage.setItem("deviceId", newId);
     return newId;
-  })();
+  }, []);
 
   useEffect(() => {
     fetch("https://ferns-breakfast-corner.com/items/orders-items.json")
