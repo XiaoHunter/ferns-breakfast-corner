@@ -126,7 +126,19 @@ export default function OrderMenu() {
 
   const togglePacked = (item, type) => {
     const key = `${item.name}-${type}`;
-    setPackedStatus((prev) => ({ ...prev, [key]: !prev[key] }));
+    const newPacked = !packedStatus[key];
+    setPackedStatus((prev) => ({ ...prev, [key]: newPacked }));
+
+    setOrder((prevOrder) => {
+      const currentItem = prevOrder[key] || {};
+      return {
+        ...prevOrder,
+        [key]: {
+          ...currentItem,
+          packed: newPacked,
+        },
+      };
+    });
   };
 
   const toggleAddon = (item, type, addon) => {
