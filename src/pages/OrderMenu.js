@@ -73,6 +73,34 @@ export default function OrderMenu() {
     });
   };
 
+  const handleFlavorChange = (item, type, flavor) => {
+    const key = `${item.name}-${type}`;
+    setOrder((prev) => {
+      const existing = prev[key] || { qty: 0, packed: false, addons: [] };
+      return {
+        ...prev,
+        [key]: {
+          ...existing,
+          flavor,
+        },
+      };
+    });
+  };
+
+  const handleNoodleChange = (item, type, noodle) => {
+    const key = `${item.name}-${type}`;
+    setOrder((prev) => {
+      const existing = prev[key] || { qty: 0, packed: false, addons: [] };
+      return {
+        ...prev,
+        [key]: {
+          ...existing,
+          noodleType: noodle,
+        },
+      };
+    });
+  };
+
   const updateOption = (item, type, value) => {
     const key = `${item.name}-${item.type}`;
     const current = order[key] || { qty: 0 };
@@ -194,8 +222,10 @@ export default function OrderMenu() {
                   const orderKey = item.name + "-" + type + (packed ? "-packed" : "") + (addons.length ? "-addons" : "");
                   const ordered = order[orderKey];
                   const unitPrice = isDrink
-                    ? (type === "hot" ? Number(item.hotPrice) : Number(item.coldPrice))
-                    : Number(item.price);
+                    ? (type === "hot"
+                        ? Number(item.hotPrice || item.price || 0)
+                        : Number(item.coldPrice || item.price || 0))
+                    : Number(item.price || 0);
                   const addonTotal = addons.reduce((sum, a) => sum + a.price, 0);
                   const price = unitPrice + (isDrink && packed ? 0.2 : 0) + addonTotal;
 
@@ -210,7 +240,7 @@ export default function OrderMenu() {
                           type="checkbox"
                           checked={packed}
                           onChange={() => togglePacked(item, type)}
-                        /> 打包{isDrink ? " (+RM0.20)" : " (免费)"}
+                        /> 打包{isDrink ? " (+RM0.20)" : ""}
                       </label>
                       {item.addons?.length > 0 && (
                         <div className="mt-1">
@@ -229,29 +259,46 @@ export default function OrderMenu() {
                       {item.types && (
                         <div className="mt-2">
                           <label className="block">选择口味:</label>
-                          <label><input type="radio" name={`flavor-${item.name}-${item.type}`} value="dry"
-                            checked={(order[orderKey]?.flavor || item.defaultFlavor || "") === "dry"}
-                            onChange={() => updateOption(item, "flavor", "dry")} /> 干</label>
-                          <label className="ml-2"><input type="radio" name={`flavor-${item.name}-${item.type}`} value="soup"
-                            checked={(order[orderKey]?.flavor || item.defaultFlavor || "") === "soup"}
-                            onChange={() => updateOption(item, "flavor", "soup")} /> 汤</label>
+                          <label>
+                            <input
+                              type="radio"
+                              name={`flavor-${item.name}-${type}`}
+                              value="dry"
+                              checked={
+                                (order[key]?.flavor || item.defaultFlavor || "dry") === "dry"
+                              }
+                              onChange={() => handleFlavorChange(item, type, "dry")}
+                            /> 干
+                          </label>
+                          <label className="ml-2">
+                            <input
+                              type="radio"
+                              name={`flavor-${item.name}-${type}`}
+                              value="soup"
+                              checked={
+                                (order[key]?.flavor || item.defaultFlavor || "dry") === "soup"
+                              }
+                              onChange={() => handleFlavorChange(item, type, "soup")}
+                            /> 汤
+                          </label>
                         </div>
                       )}
 
-                      {item.noodles && (
+                      {item.noodleTypes && (
                         <div className="mt-2">
                           <label className="block">选择面粉:</label>
                           <select
-                            value={order[orderKey]?.noodleType || ""}
-                            onChange={(e) => updateOption(item, "noodleType", e.target.value)}
+                            value={order[key]?.noodleType || item.defaultNoodleType || ""}
+                            onChange={(e) => handleNoodleChange(item, type, e.target.value)}
                           >
                             <option value="">请选择面粉</option>
-                            {item.noodleTypes?.map((noodle) => (
-                              <option key={noodle} value={noodle}>{noodle}</option>
+                            {item.noodleTypes.map((n) => (
+                              <option key={n} value={n}>{n}</option>
                             ))}
                           </select>
                         </div>
                       )}
+
                       <div className="flex gap-2 mt-2">
                         <button className="px-3 py-1 bg-gray-300 rounded" onClick={() => updateQty(item, type, -1)}>-</button>
                         <span>{ordered?.qty || 0}</span>
