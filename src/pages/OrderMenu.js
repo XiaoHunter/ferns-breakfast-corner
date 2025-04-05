@@ -328,6 +328,7 @@ export default function OrderMenu() {
                               type="radio"
                               name={`flavor-${item.name}-${type}`}
                               value="dry"
+                              checked={flavor === "dry"}
                               onChange={() => handleFlavorChange(item, type, "dry")}
                             /> 干
                           </label>
@@ -336,6 +337,7 @@ export default function OrderMenu() {
                               type="radio"
                               name={`flavor-${item.name}-${type}`}
                               value="soup"
+                              checked={flavor === "soup"}
                               onChange={() => handleFlavorChange(item, type, "soup")}
                             /> 汤
                           </label>
