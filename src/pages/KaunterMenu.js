@@ -62,7 +62,24 @@ const KaunterMenu = () => {
 
   const removeItem = (orderIndex, itemIndex) => {
     const updatedOrder = { ...orders[orderIndex] };
+    updatedOrder.items = [...updatedOrder.items]; // clone items
     updatedOrder.items.splice(itemIndex, 1);
+
+    // 重新计算总价
+    let newTotal = 0;
+    updatedOrder.items.forEach((item) => {
+      const base =
+        item.type === "cold" ? item.coldPrice :
+        item.type === "hot" ? item.hotPrice :
+        item.price || 0;
+
+      const packedFee = item.packed ? 0.2 : 0;
+      const addonTotal = (item.addons || []).reduce((sum, a) => sum + a.price, 0);
+
+      newTotal += item.qty * (base + packedFee + addonTotal);
+    });
+    updatedOrder.total = Number(newTotal.toFixed(2));
+
     updateSingleOrder(updatedOrder);
   };
 
@@ -70,7 +87,7 @@ const KaunterMenu = () => {
     const updatedOrder = { ...orders[index], table: newTable };
     updateSingleOrder(updatedOrder);
   };
-  
+
   if (!token) {
     return (
       <div className="p-4">
