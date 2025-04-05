@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 export default function OrderMenu() {
   const [menu, setMenu] = useState({});
@@ -6,6 +6,7 @@ export default function OrderMenu() {
   const [packedStatus, setPackedStatus] = useState({});
   const [addonsStatus, setAddonsStatus] = useState({});
   const [loading, setLoading] = useState(true);
+  const categoryRefs = useRef({});
 
   useEffect(() => {
     fetch("https://ferns-breakfast-corner.com/items/orders-items.json")
@@ -110,86 +111,107 @@ export default function OrderMenu() {
   if (loading) return <div className="p-4">🕒 正在加载菜单...</div>;
 
   return (
-    <div className="p-4 bg-yellow-100 min-h-screen">
-      <h1 className="text-2xl font-bold mb-4">🧋 Order Menu</h1>
-      {Object.entries(menu).map(([category, items]) => (
-        <div key={category} className="mb-6">
-          <h2 className="text-xl font-bold mb-2">📂 {category}</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-            {items.map((item) => {
-              const isDrink = category === "饮料";
-              const types = isDrink ? ["hot", "cold"] : ["standard"];
+    <div className="flex min-h-screen">
+      {/* Sidebar */}
+      <div className="w-32 bg-yellow-200 border-r p-2 space-y-4 text-center text-sm">
+        {Object.keys(menu).map((cat) => (
+          <button
+            key={cat}
+            onClick={() => categoryRefs.current[cat]?.scrollIntoView({ behavior: "smooth" })}
+            className="bg-white px-2 py-1 rounded hover:bg-yellow-300"
+          >
+            {cat}
+          </button>
+        ))}
+      </div>
 
-              return types.map((type) => {
-                const statusKey = `${item.name}-${type}`;
-                const packed = packedStatus[statusKey] || false;
-                const addons = addonsStatus[statusKey] || [];
-                const key = item.name + "-" + type + (packed ? "-packed" : "") + (addons.length ? "-addons" : "");
-                const ordered = order[key];
-                const base = isDrink ? (type === "hot" ? item.hotPrice : item.coldPrice) : item.price;
-                const addonTotal = addons.reduce((sum, a) => sum + a.price, 0);
-                const price = base + (isDrink && packed ? 0.2 : 0) + addonTotal;
+      {/* Content */}
+      <div className="flex-1 p-4 bg-yellow-50">
+        <h1 className="text-2xl font-bold mb-4">🧋 Order Menu</h1>
+        {Object.entries(menu).map(([category, items]) => (
+          <div
+            key={category}
+            ref={(el) => (categoryRefs.current[category] = el)}
+            className="mb-8"
+          >
+            <h2 className="text-xl font-bold mb-2">📂 {category}</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {items.flatMap((item) => {
+                const isDrink = category === "饮料";
+                const types = isDrink ? ["hot", "cold"] : ["standard"];
 
-                return (
-                  <div key={key} className="bg-white p-4 rounded shadow">
-                    <h2 className="font-semibold text-lg">
-                      {item.chineseName} ({item.name}){isDrink ? ` - ${type.toUpperCase()}` : ""}
-                    </h2>
-                    <p>RM {price.toFixed(2)}</p>
-                    <label className="block mt-1">
-                      <input
-                        type="checkbox"
-                        checked={packed}
-                        onChange={() => togglePacked(item, type)}
-                      /> 打包{isDrink ? " (+RM0.20)" : " (免费)"}
-                    </label>
-                    {item.addons?.length > 0 && (
-                      <div className="mt-1">
-                        {item.addons.map((addon) => (
-                          <label key={addon.name} className="block text-sm">
-                            <input
-                              type="checkbox"
-                              checked={addons.some((a) => a.name === addon.name)}
-                              onChange={() => toggleAddon(item, type, addon)}
-                            /> {addon.name} (+RM{addon.price.toFixed(2)})
-                          </label>
-                        ))}
+                return types.map((type) => {
+                  const statusKey = `${item.name}-${type}`;
+                  const packed = packedStatus[statusKey] || false;
+                  const addons = addonsStatus[statusKey] || [];
+                  const key = item.name + "-" + type + (packed ? "-packed" : "") + (addons.length ? "-addons" : "");
+                  const ordered = order[key];
+                  const base = isDrink ? (type === "hot" ? item.hotPrice : item.coldPrice) : item.price;
+                  const addonTotal = addons.reduce((sum, a) => sum + a.price, 0);
+                  const price = base + (isDrink && packed ? 0.2 : 0) + addonTotal;
+
+                  return (
+                    <div key={key} className="bg-white p-4 rounded shadow">
+                      <h2 className="font-semibold text-lg">
+                        {item.chineseName} ({item.name}){isDrink ? ` - ${type.toUpperCase()}` : ""}
+                      </h2>
+                      <p>RM {price.toFixed(2)}</p>
+                      <label className="block mt-1">
+                        <input
+                          type="checkbox"
+                          checked={packed}
+                          onChange={() => togglePacked(item, type)}
+                        /> 打包{isDrink ? " (+RM0.20)" : " (免费)"}
+                      </label>
+                      {item.addons?.length > 0 && (
+                        <div className="mt-1">
+                          {item.addons.map((addon) => (
+                            <label key={addon.name} className="block text-sm">
+                              <input
+                                type="checkbox"
+                                checked={addons.some((a) => a.name === addon.name)}
+                                onChange={() => toggleAddon(item, type, addon)}
+                              /> {addon.name} (+RM{addon.price.toFixed(2)})
+                            </label>
+                          ))}
+                        </div>
+                      )}
+                      <div className="flex gap-2 mt-2">
+                        <button
+                          className="px-3 py-1 bg-gray-300 rounded"
+                          onClick={() => updateQty(item, type, -1)}
+                        >-</button>
+                        <span>{ordered?.qty || 0}</span>
+                        <button
+                          className="px-3 py-1 bg-green-400 rounded"
+                          onClick={() => updateQty(item, type, 1)}
+                        >+</button>
                       </div>
-                    )}
-                    <div className="flex gap-2 mt-2">
-                      <button
-                        className="px-3 py-1 bg-gray-300 rounded"
-                        onClick={() => updateQty(item, type, -1)}
-                      >-</button>
-                      <span>{ordered?.qty || 0}</span>
-                      <button
-                        className="px-3 py-1 bg-green-400 rounded"
-                        onClick={() => updateQty(item, type, 1)}
-                      >+</button>
                     </div>
-                  </div>
-                );
-              });
-            })}
+                  );
+                });
+              })}
+            </div>
           </div>
-        </div>
-      ))}
+        ))}
 
-      <div className="mt-6 p-4 bg-white rounded shadow">
-        <h2 className="text-xl font-semibold mb-2">🧾 当前订单</h2>
-        <ul className="mb-2">
-          {Object.values(order).map((item, idx) => (
-            <li key={idx}>
-              {item.name} - {item.type.toUpperCase()}
-              {item.packed ? "（打包）" : ""}
-              {item.addons?.length ? " + " + item.addons.map((a) => a.name).join(", ") : ""} x {item.qty}
-            </li>
-          ))}
-        </ul>
-        <h2 className="text-lg font-bold">总价: RM {getTotal()}</h2>
-        <div className="mt-2 flex gap-4">
-          <button className="px-4 py-2 bg-red-500 text-white rounded" onClick={clearOrder}>清空</button>
-          <button className="px-4 py-2 bg-blue-500 text-white rounded" onClick={handleRequestBill}>请求账单</button>
+        {/* Order summary */}
+        <div className="mt-10 p-4 bg-white rounded shadow">
+          <h2 className="text-xl font-semibold mb-2">🧾 当前订单</h2>
+          <ul className="mb-2">
+            {Object.values(order).map((item, idx) => (
+              <li key={idx}>
+                {item.name} - {item.type.toUpperCase()}
+                {item.packed ? "（打包）" : ""}
+                {item.addons?.length ? " + " + item.addons.map((a) => a.name).join(", ") : ""} x {item.qty}
+              </li>
+            ))}
+          </ul>
+          <h2 className="text-lg font-bold">总价: RM {getTotal()}</h2>
+          <div className="mt-2 flex gap-4">
+            <button className="px-4 py-2 bg-red-500 text-white rounded" onClick={clearOrder}>清空</button>
+            <button className="px-4 py-2 bg-blue-500 text-white rounded" onClick={handleRequestBill}>请求账单</button>
+          </div>
         </div>
       </div>
     </div>
