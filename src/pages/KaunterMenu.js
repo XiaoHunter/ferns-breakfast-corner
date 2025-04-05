@@ -6,12 +6,19 @@ const KaunterMenu = () => {
   const [orders, setOrders] = useState([]);
   const [editingTable, setEditingTable] = useState(null);
   const [tableInputs, setTableInputs] = useState({});
-
+  const getMalaysiaToday = () => {
+    const now = new Date();
+    const malaysiaOffset = 8 * 60; // minutes
+    const localOffset = now.getTimezoneOffset(); // 当前时区差
+    const malaysiaTime = new Date(now.getTime() + (malaysiaOffset + localOffset) * 60 * 1000);
+    return malaysiaTime.toISOString().split("T")[0];
+  };
+  
   useEffect(() => {
     if (!token) return;
 
     const fetchOrders = () => {
-      const today = new Date().toISOString().split("T")[0];
+      const today = getMalaysiaToday();
       fetch(`https://ferns-breakfast-corner.com/orders/orders-${today}.json`)
         .then((res) => res.json())
         .then((data) => setOrders(data.reverse()));

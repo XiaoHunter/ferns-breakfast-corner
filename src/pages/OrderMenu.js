@@ -19,6 +19,7 @@ export default function OrderMenu() {
     localStorage.setItem("deviceId", newId);
     return newId;
   }, []);
+
   const formatMalaysiaTime = (isoString) => {
     const date = new Date(isoString);
     const local = new Date(date.getTime() + 8 * 60 * 60 * 1000);
@@ -47,9 +48,17 @@ export default function OrderMenu() {
       });
   }, []);
 
+  const getMalaysiaToday = () => {
+    const now = new Date();
+    const malaysiaOffset = 8 * 60; // minutes
+    const localOffset = now.getTimezoneOffset(); // 当前时区差
+    const malaysiaTime = new Date(now.getTime() + (malaysiaOffset + localOffset) * 60 * 1000);
+    return malaysiaTime.toISOString().split("T")[0];
+  };
+
   useEffect(() => {
     const fetchOrders = () => {
-      const today = new Date().toISOString().slice(0, 10);
+      const today = getMalaysiaToday();
       fetch(`https://ferns-breakfast-corner.com/orders/orders-${today}.json`)
         .then(res => res.json())
         .then(data => {
