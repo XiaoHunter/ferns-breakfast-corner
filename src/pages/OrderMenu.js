@@ -2,11 +2,11 @@ import React, { useEffect, useRef, useState } from "react";
 
 export default function OrderMenu() {
   const [menu, setMenu] = useState({});
+  const [selectedCategory, setSelectedCategory] = useState("");
   const [order, setOrder] = useState({});
   const [packedStatus, setPackedStatus] = useState({});
   const [addonsStatus, setAddonsStatus] = useState({});
   const [loading, setLoading] = useState(true);
-  const categoryRefs = useRef({});
 
   useEffect(() => {
     fetch("https://ferns-breakfast-corner.com/items/orders-items.json")
@@ -17,6 +17,7 @@ export default function OrderMenu() {
           categorized[entry.category] = entry.items;
         });
         setMenu(categorized);
+        setSelectedCategory(Object.keys(categorized)[0]);
         setLoading(false);
       });
   }, []);
@@ -46,19 +47,16 @@ export default function OrderMenu() {
   };
 
   const togglePacked = (item, type) => {
-    const statusKey = `${item.name}-${type}`;
-    const newStatus = !packedStatus[statusKey];
-    setPackedStatus({ ...packedStatus, [statusKey]: newStatus });
+    const key = `${item.name}-${type}`;
+    setPackedStatus((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
   const toggleAddon = (item, type, addon) => {
     const key = `${item.name}-${type}`;
     const current = addonsStatus[key] || [];
     const exists = current.find((a) => a.name === addon.name);
-    const updated = exists
-      ? current.filter((a) => a.name !== addon.name)
-      : [...current, addon];
-    setAddonsStatus({ ...addonsStatus, [key]: updated });
+    const updated = exists ? current.filter((a) => a.name !== addon.name) : [...current, addon];
+    setAddonsStatus((prev) => ({ ...prev, [key]: updated }));
   };
 
   const getTotal = () => {
@@ -113,12 +111,13 @@ export default function OrderMenu() {
   return (
     <div className="flex min-h-screen">
       {/* Sidebar */}
-      <div className="w-32 bg-yellow-200 border-r p-2 space-y-4 text-center text-sm">
+      <div className="w-32 bg-yellow-200 border-r p-2 space-y-2 text-center text-sm">
+        <h1 className="text-lg font-bold mb-2">☕️ Ferns Breakfast Corner</h1>
         {Object.keys(menu).map((cat) => (
           <button
             key={cat}
-            onClick={() => categoryRefs.current[cat]?.scrollIntoView({ behavior: "smooth" })}
-            className="bg-white px-2 py-1 rounded hover:bg-yellow-300"
+            onClick={() => setSelectedCategory(cat)}
+            className={`px-2 py-1 rounded ${selectedCategory === cat ? "bg-yellow-400 font-bold" : "bg-white hover:bg-yellow-300"}`}
           >
             {cat}
           </button>
@@ -128,30 +127,26 @@ export default function OrderMenu() {
       {/* Content */}
       <div className="flex-1 p-4 bg-yellow-50">
         <h1 className="text-2xl font-bold mb-4">🧋 Order Menu</h1>
-        {Object.entries(menu).map(([category, items]) => (
-          <div
-            key={category}
-            ref={(el) => (categoryRefs.current[category] = el)}
-            className="mb-8"
-          >
-            <h2 className="text-xl font-bold mb-2">📂 {category}</h2>
+        {selectedCategory && (
+          <div className="mb-8">
+            <h2 className="text-xl font-bold mb-2">📂 {selectedCategory}</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {items.flatMap((item) => {
-                const isDrink = category === "饮料";
+              {menu[selectedCategory].flatMap((item) => {
+                const isDrink = selectedCategory === "饮料";
                 const types = isDrink ? ["hot", "cold"] : ["standard"];
 
                 return types.map((type) => {
-                  const statusKey = `${item.name}-${type}`;
-                  const packed = packedStatus[statusKey] || false;
-                  const addons = addonsStatus[statusKey] || [];
-                  const key = item.name + "-" + type + (packed ? "-packed" : "") + (addons.length ? "-addons" : "");
-                  const ordered = order[key];
+                  const key = `${item.name}-${type}`;
+                  const packed = packedStatus[key] || false;
+                  const addons = addonsStatus[key] || [];
+                  const orderKey = item.name + "-" + type + (packed ? "-packed" : "") + (addons.length ? "-addons" : "");
+                  const ordered = order[orderKey];
                   const base = isDrink ? (type === "hot" ? item.hotPrice : item.coldPrice) : item.price;
                   const addonTotal = addons.reduce((sum, a) => sum + a.price, 0);
                   const price = base + (isDrink && packed ? 0.2 : 0) + addonTotal;
 
                   return (
-                    <div key={key} className="bg-white p-4 rounded shadow">
+                    <div key={orderKey} className="bg-white p-4 rounded shadow">
                       <h2 className="font-semibold text-lg">
                         {item.chineseName} ({item.name}){isDrink ? ` - ${type.toUpperCase()}` : ""}
                       </h2>
@@ -177,15 +172,9 @@ export default function OrderMenu() {
                         </div>
                       )}
                       <div className="flex gap-2 mt-2">
-                        <button
-                          className="px-3 py-1 bg-gray-300 rounded"
-                          onClick={() => updateQty(item, type, -1)}
-                        >-</button>
+                        <button className="px-3 py-1 bg-gray-300 rounded" onClick={() => updateQty(item, type, -1)}>-</button>
                         <span>{ordered?.qty || 0}</span>
-                        <button
-                          className="px-3 py-1 bg-green-400 rounded"
-                          onClick={() => updateQty(item, type, 1)}
-                        >+</button>
+                        <button className="px-3 py-1 bg-green-400 rounded" onClick={() => updateQty(item, type, 1)}>+</button>
                       </div>
                     </div>
                   );
@@ -193,7 +182,7 @@ export default function OrderMenu() {
               })}
             </div>
           </div>
-        ))}
+        )}
 
         {/* Order summary */}
         <div className="mt-10 p-4 bg-white rounded shadow">
