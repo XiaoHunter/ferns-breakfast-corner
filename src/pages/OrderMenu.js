@@ -301,6 +301,8 @@ export default function OrderMenu() {
                   const key = `${item.name}-${type}`;
                   const packed = packedStatus[key] || false;
                   const addons = addonsStatus[key] || [];
+                  const flavor = flavorStatus[key] || "dry";
+                  const noodle = noodleStatus[key] || "";
                   const orderKey = `${item.name}-${type}-${flavor}-${noodle}${packed ? "-packed" : ""}${addons.length ? "-addons" : ""}`;
                   const ordered = order[orderKey];
                   const unitPrice = isDrink
