@@ -98,10 +98,11 @@ export default function OrderMenu() {
   };
 
   const updateQty = (item, type, delta) => {
-    const packed = packedStatus[`${item.name}-${type}`] || false;
-    const addons = addonsStatus[`${item.name}-${type}`] || [];
-    const flavor = flavorStatus[`${item.name}-${type}`] ?? "";
-    const noodle = noodleStatus[`${item.name}-${type}`] ?? "";
+    const keyBase = `${item.name}-${type}`;
+    const packed = packedStatus[keyBase] || false;
+    const addons = addonsStatus[keyBase] || [];
+    const flavor = flavorStatus[keyBase] ?? "dry";
+    const noodle = noodleStatus[keyBase] ?? "";
     const key = `${item.name}-${type}-${flavor}-${noodle}${packed ? "-packed" : ""}${addons.length ? "-addons" : ""}`;
 
     setOrder((prev) => {
@@ -294,13 +295,13 @@ export default function OrderMenu() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {menu[selectedCategory].flatMap((item) => {
                 const isDrink = selectedCategory.startsWith("饮料");
-                const types = isDrink ? ["hot"] : ["standard"];
+                const types = isDrink ? ["hot", "cold"] : ["standard"];
 
                 return types.map((type) => {
                   const key = `${item.name}-${type}`;
                   const packed = packedStatus[key] || false;
                   const addons = addonsStatus[key] || [];
-                  const orderKey = item.name + "-" + type + (packed ? "-packed" : "") + (addons.length ? "-addons" : "");
+                  const orderKey = `${item.name}-${type}-${flavor}-${noodle}${packed ? "-packed" : ""}${addons.length ? "-addons" : ""}`;
                   const ordered = order[orderKey];
                   const unitPrice = isDrink
                     ? (type === "hot"
@@ -313,7 +314,7 @@ export default function OrderMenu() {
                   return (
                     <div key={orderKey} className="bg-white p-4 rounded shadow">
                       <h2 className="font-semibold text-lg">
-                        {item.chineseName} ({item.name}){isDrink ? ` - ${type.toUpperCase()}` : ""}
+                        {item.chineseName} ({item.name})
                       </h2>
                       <p>RM {price.toFixed(2)}</p>
                       <label className="block mt-1">
