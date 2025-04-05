@@ -11,12 +11,21 @@ export default function OrderMenu() {
   const [packedStatus, setPackedStatus] = useState({});
   const [addonsStatus, setAddonsStatus] = useState({});
   const [loading, setLoading] = useState(true);
+  const [editingOrderId, setEditingOrderId] = useState(null);
   const deviceId = useMemo(() => {
     const stored = localStorage.getItem("deviceId");
     if (stored) return stored;
     const newId = "device-" + Math.random().toString(36).substring(2, 8);
     localStorage.setItem("deviceId", newId);
     return newId;
+  }, []);
+
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const editId = urlParams.get("edit");
+    if (editId) {
+      setEditingOrderId(Number(editId));
+    }
   }, []);
 
   useEffect(() => {
@@ -41,16 +50,19 @@ export default function OrderMenu() {
         .then(data => {
           const myOrdersOnly = data.filter(o => o.deviceId === deviceId);
           setMyOrders(myOrdersOnly);
+
+          if (!editingOrderId) {
+            const last = myOrdersOnly.length > 0 ? myOrdersOnly[0] : null;
+            if (last) setEditingOrderId(last.orderId);
+          }
         })
-        .catch(() => setMyOrders([])); // 不存在时不挂掉
+        .catch(() => setMyOrders([]));
     };
 
-    fetchOrders(); // 第一次加载
-
-    const interval = setInterval(fetchOrders, 5000); // 每 5 秒刷新一次
-
-    return () => clearInterval(interval); // 组件卸载时清除定时器
-  }, [deviceId]);
+    fetchOrders();
+    const interval = setInterval(fetchOrders, 5000);
+    return () => clearInterval(interval);
+  }, [deviceId, editingOrderId]);
 
   useEffect(() => {
     if (!menu) return;
@@ -190,7 +202,6 @@ export default function OrderMenu() {
       addons: item.addons || [],
     }));
 
-    const today = new Date().toISOString().split("T")[0];
     const data = {
       deviceId,
       items,
@@ -199,6 +210,10 @@ export default function OrderMenu() {
       status: "pending",
       payment: "",
     };
+
+    if (editingOrderId) {
+      data.orderId = editingOrderId;
+    }
 
     fetch("https://ferns-breakfast-corner.com/api/send-order.php", {
       method: "POST",

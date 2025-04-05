@@ -103,6 +103,10 @@ const KaunterMenu = () => {
     setTableInputs((prev) => ({ ...prev, [orderId]: "" }));
   };
 
+  const goToAddItems = (orderId) => {
+    window.location.href = `/order?edit=${orderId}`;
+  };
+
   if (!token) {
     return (
       <div className="p-4">
@@ -149,6 +153,9 @@ const KaunterMenu = () => {
               </li>
             ))}
           </ul>
+          <div className="mt-2">
+            <button onClick={() => goToAddItems(order.orderId)} className="text-blue-600 underline">🛒 添加餐点</button>
+          </div>
           {order.status === "completed" ? (
             <p style={{ color: "green" }}>✅ 已付款（{order.payment}）</p>
           ) : order.status === "cancelled" ? (
