@@ -177,12 +177,11 @@ export default function OrderMenu() {
                   const addons = addonsStatus[key] || [];
                   const orderKey = item.name + "-" + type + (packed ? "-packed" : "") + (addons.length ? "-addons" : "");
                   const ordered = order[orderKey];
-                  const base = isDrink ? (type === "hot" ? item.hotPrice : item.coldPrice) : item.price;
-                  const addonTotal = addons.reduce((sum, a) => sum + a.price, 0);
-                  const price = base + (isDrink && packed ? 0.2 : 0) + addonTotal;
                   const base = isDrink
                     ? (type === "hot" ? Number(item.hotPrice) : Number(item.coldPrice))
                     : Number(item.price);
+                  const addonTotal = addons.reduce((sum, a) => sum + a.price, 0);
+                  const price = base + (isDrink && packed ? 0.2 : 0) + addonTotal;
 
                   return (
                     <div key={orderKey} className="bg-white p-4 rounded shadow">
