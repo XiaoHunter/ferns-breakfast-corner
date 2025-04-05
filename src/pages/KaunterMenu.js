@@ -6,11 +6,10 @@ const KaunterMenu = () => {
   const [orders, setOrders] = useState([]);
   const [editingTable, setEditingTable] = useState(null);
   const [tableInputs, setTableInputs] = useState({});
+  
   const getMalaysiaToday = () => {
     const now = new Date();
-    const malaysiaOffset = 8 * 60; // minutes
-    const localOffset = now.getTimezoneOffset(); // 当前时区差
-    const malaysiaTime = new Date(now.getTime() + (malaysiaOffset + localOffset) * 60 * 1000);
+    const malaysiaTime = new Date(now.getTime() + 8 * 60 * 60 * 1000); // 加 8 小时（毫秒）
     return malaysiaTime.toISOString().split("T")[0];
   };
 
