@@ -38,6 +38,46 @@ const KaunterMenu = () => {
       });
   };
 
+  const formatMalaysiaTime = (isoTime) => {
+    const date = new Date(isoTime);
+    const local = new Date(date.getTime() + 8 * 60 * 60 * 1000);
+    return local.toLocaleString("en-MY", { hour12: false });
+  };
+
+  const printReceipt = (order) => {
+    const w = window.open("", "PRINT", "height=600,width=400");
+    w.document.write(`<html><head><title>Receipt</title>
+      <style>
+        body { font-family: monospace; width: 58mm; }
+        h2, p, li { margin: 0; padding: 2px 0; }
+        ul { padding-left: 0; list-style: none; }
+        hr { margin: 6px 0; border: none; border-top: 1px dashed #000; }
+      </style>
+    </head><body>`);
+
+    w.document.write(`<h2>FERNS BREAKFAST CORNER</h2>`);
+    w.document.write(`<p>日期: ${formatMalaysiaTime(order.time)}</p>`);
+    w.document.write(`<p>订单: ${order.orderId}</p>`);
+    w.document.write(`<p>桌号: ${order.table || order.deviceId}</p><hr/>`);
+
+    order.items.forEach(item => {
+      if (item.qty > 0) {
+        w.document.write(`<p>${item.name} x ${item.qty}</p>`);
+      }
+    });
+
+    w.document.write(`<hr/><p><strong>总计: RM ${order.total.toFixed(2)}</strong></p>`);
+    if (order.payment) {
+      w.document.write(`<p>付款方式: ${order.payment}</p>`);
+    }
+    w.document.write(`<p>谢谢惠顾！</p>`);
+    w.document.write(`</body></html>`);
+    w.document.close();
+    w.focus();
+    w.print();
+    w.close();
+  };
+
   const updateSingleOrder = (order) => {
     fetch("https://ferns-breakfast-corner.com/api/update-order.php", {
       method: "POST",
@@ -87,7 +127,6 @@ const KaunterMenu = () => {
     item.qty = Math.max(0, item.qty + delta);
     updatedOrder.items[itemIndex] = item;
 
-    // recalculate total using item price info if available
     let newTotal = 0;
     updatedOrder.items.forEach((item) => {
       const base = item.type === "cold" ? (item.coldPrice ?? 0)
@@ -131,16 +170,6 @@ const KaunterMenu = () => {
     window.location.href = `/order?edit=${orderId}`;
   };
 
-  if (!token) {
-    return (
-      <div className="p-4">
-        <h2 className="text-xl mb-2">🔒 请输入 Kaunter 密码</h2>
-        <input type="password" value={input} onChange={(e) => setInput(e.target.value)} className="border p-2" />
-        <button onClick={login} className="ml-2 bg-blue-500 text-white px-4 py-2 rounded">登录</button>
-      </div>
-    );
-  }
-
   return (
     <div style={{ padding: "20px" }}>
       <h1>🧾 Kaunter Order List</h1>
@@ -161,7 +190,7 @@ const KaunterMenu = () => {
               </>
             )
           }</p>
-          <p><strong>时间:</strong> {order.time}</p>
+          <p><strong>时间:</strong> {formatMalaysiaTime(order.time)}</p>
           <p><strong>总价:</strong> RM {order.total.toFixed(2)}</p>
           <p><strong>餐点:</strong></p>
           <ul>
@@ -183,7 +212,10 @@ const KaunterMenu = () => {
             </div>
           )}
           {order.status === "completed" ? (
-            <p style={{ color: "green" }}>✅ 已付款（{order.payment}）</p>
+            <>
+              <p style={{ color: "green" }}>✅ 已付款（{order.payment}）</p>
+              <button onClick={() => printReceipt(order)} className="text-blue-600 underline mt-2">🖨️ 打印收据</button>
+            </>
           ) : order.status === "cancelled" ? (
             <p style={{ color: "gray" }}>❌ 已取消</p>
           ) : (

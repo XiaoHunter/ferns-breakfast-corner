@@ -19,6 +19,11 @@ export default function OrderMenu() {
     localStorage.setItem("deviceId", newId);
     return newId;
   }, []);
+  const formatMalaysiaTime = (isoString) => {
+    const date = new Date(isoString);
+    const local = new Date(date.getTime() + 8 * 60 * 60 * 1000);
+    return local.toLocaleString("en-MY", { hour12: false });
+  };
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -430,7 +435,7 @@ export default function OrderMenu() {
             {myOrders.map((o, idx) => (
               <div key={idx} className="mb-2 border p-2 rounded">
                 <div>订单编号: {o.orderId}</div>
-                <div>时间: {new Date(o.time).toLocaleString()}</div>
+                <div>时间: {formatMalaysiaTime(o.time)}</div>
                 <div>总价: RM {o.total}</div>
                 <div className="text-sm text-gray-600">
                   餐点:
