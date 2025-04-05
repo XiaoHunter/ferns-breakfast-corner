@@ -124,7 +124,9 @@ export default function OrderMenu() {
     <div className="flex min-h-screen">
       {/* Sidebar */}
       <div className="w-32 bg-yellow-200 border-r p-2 space-y-2 text-center text-sm">
-        <h1 className="text-lg font-bold mb-2">☕️ Ferns Breakfast Corner</h1>
+        <div className="text-center mb-4">
+          <img src="/ferns-logo.png" alt="Ferns Breakfast Corner" className="mx-auto w-20 h-auto" />
+        </div>
         {Object.keys(menu).map((cat) => (
           <button
             key={cat}
