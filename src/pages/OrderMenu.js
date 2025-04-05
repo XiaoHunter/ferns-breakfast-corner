@@ -26,7 +26,7 @@ export default function OrderMenu() {
         });
         setMenu(categorized);
         setSelectedCategory(Object.keys(categorized)[0]);
-        setLoading(false);ks
+        setLoading(false);
       });
   }, []);
 
@@ -263,5 +263,6 @@ export default function OrderMenu() {
           </div>
         ))}
     )}
-  );
+  </div>
+);
 }
