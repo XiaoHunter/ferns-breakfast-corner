@@ -217,8 +217,8 @@ export default function OrderMenu() {
       const noodleOptions = matched?.noodles || []; // safe fallback
 
       const basePrice = 
-        type === "cold" ? Number(matched.coldPrice ?? matched.price ?? 0) :
-        type === "hot" ? Number(matched.hotPrice ?? matched.price ?? 0) :
+        item.type === "cold" ? Number(matched.coldPrice ?? matched.price ?? 0) :
+        item.type === "hot" ? Number(matched.hotPrice ?? matched.price ?? 0) :
         Number(matched.price ?? 0);
 
       const isDrinkCategory = matched.category && matched.category.startsWith("饮料");
