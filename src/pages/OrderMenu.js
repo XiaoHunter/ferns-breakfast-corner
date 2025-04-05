@@ -155,8 +155,6 @@ export default function OrderMenu() {
       const matched = Object.values(menu).flat().find((d) => d.name === item.name);
       if (!matched) continue;
 
-      const noodleOptions = matched?.noodles || []; // safe fallback
-
       const basePrice = 
         item.type === "cold" ? Number(matched.coldPrice ?? matched.price ?? 0) :
         item.type === "hot" ? Number(matched.hotPrice ?? matched.price ?? 0) :
@@ -164,6 +162,7 @@ export default function OrderMenu() {
 
       const isDrinkCategory = matched.category && matched.category.startsWith("饮料");
       const key = `${item.name}-${item.type}`;
+      console.log(item.packed);
       const packedFee = isDrinkCategory && item.packed ? 0.2 : 0;
 
       const addonTotal = (item.addons || []).reduce((s, a) => s + a.price, 0);
