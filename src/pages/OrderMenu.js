@@ -97,12 +97,13 @@ export default function OrderMenu() {
         const { [key]: _, ...rest } = prev;
         return rest;
       }
+      const isDrink = item.category?.startsWith("饮料");
       return {
         ...prev,
         [key]: {
           name: item.name,
           type,
-          packed: packed,
+          packed: isDrink ? packedStatus[keyBase] || false : false,
           addons,
           qty,
           flavor,
