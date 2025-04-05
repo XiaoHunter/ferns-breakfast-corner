@@ -41,7 +41,7 @@ const KaunterMenu = () => {
   };
 
   useEffect(() => {
-    if (token) return;
+    if (!token) return;
 
     fetchOrders();
 
