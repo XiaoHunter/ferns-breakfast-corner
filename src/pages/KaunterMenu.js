@@ -1,18 +1,17 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 
 const KaunterMenu = () => {
-  const [token, setToken] = useState(null); // 存储 Token
-  const [input, setInput] = useState(""); // 密码输入
-  const [orders, setOrders] = useState([]); // 存储订单数据
-  const [loading, setLoading] = useState(true); // 控制加载状态
-  const [paymentMethod, setPaymentMethod] = useState(""); // 记录付款方式
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [token, setToken] = useState(null); // Token for authorization
 
   // 登录函数：获取 Token
   const login = () => {
     fetch("https://ferns-breakfast-corner.com/api/kaunter-login.php", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ password: input }),
+      body: JSON.stringify({ password: "your_password_here" }), // 输入正确密码
     })
       .then((res) => res.json())
       .then((res) => {
@@ -45,18 +44,18 @@ const KaunterMenu = () => {
       });
   };
 
-  // 使用 useEffect 获取订单数据，当登录成功时
+  // 每次 Token 更新时获取订单数据
   useEffect(() => {
     fetchOrders();
-  }, [token]); // 当 Token 更新时，重新加载订单数据
+  }, [token]);
 
-  // 确认付款函数
+  // 确认付款处理函数
   const handlePaymentWithConfirmation = (index, paymentMethod) => {
     const order = orders[index];
 
     if (order.status === "completed" || order.status === "cancelled") {
-      alert('此订单已经处理，无法再次修改');
-      return;
+      alert("此订单已处理，无法再次修改");
+      return; // 防止已完成或已取消的订单被再次操作
     }
 
     if (window.confirm("确认付款？")) {
@@ -84,7 +83,7 @@ const KaunterMenu = () => {
         .then((res) => {
           if (res.status === "success") {
             alert("✅ 已完成付款！");
-            fetchOrders(); // 重新获取订单数据
+            fetchOrders(); // 刷新订单数据
           } else {
             alert("❌ 付款失败，请重试！");
           }
@@ -98,7 +97,7 @@ const KaunterMenu = () => {
   // 取消付款处理
   const handleCancelPayment = (index) => {
     if (window.confirm("确定要取消付款吗？")) {
-      const updatedOrder = { ...orders[index], status: "pending", payment: "" };
+      const updatedOrder = { ...orders[index], status: "cancelled", payment: "" };
       const updatedOrders = [...orders];
       updatedOrders[index] = updatedOrder;
       setOrders(updatedOrders);
@@ -115,8 +114,7 @@ const KaunterMenu = () => {
           <h2>🔒 请登录</h2>
           <input
             type="password"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
+            onChange={(e) => setToken(e.target.value)} // 输入 Token
             placeholder="请输入密码"
             style={{ marginRight: "10px" }}
           />
@@ -135,36 +133,32 @@ const KaunterMenu = () => {
                 <p><strong>订单编号:</strong> {order.orderId}</p>
                 <p><strong>Device:</strong> {order.deviceId}</p>
                 <p><strong>时间:</strong> {order.time}</p>
-                <p><strong>总价:</strong> RM {order.total ? order.total.toFixed(2) : "N/A"}</p>
+                <p><strong>总价:</strong> RM {order.total.toFixed(2)}</p>
                 <p><strong>餐点:</strong></p>
                 <ul>
                   {Array.isArray(order.items) && order.items.map((item, i) => (
                     <li key={i}>
                       {item.name} x {item.qty} {item.packed ? "（打包）" : ""}
                     </li>
-                  ))
-                }
+                  ))}
                 </ul>
-                {/* Add the status display here */}
-                <p><strong>付款方式:</strong> 
-                  {order.status === 'pending' && !order.payment
-                    ? '未选择支付方式' 
-                    : order.payment === 'cash' 
-                    ? '现金支付' 
-                    : '电子钱包'}
+                <p><strong>状态:</strong> 
+                  {order.status === "pending" 
+                    ? "待付款" 
+                    : order.status === "completed" 
+                    ? `已付款（${order.payment}）` 
+                    : "已取消"}
                 </p>
-                <p><strong>状态:</strong> {order.status === "pending" ? "待付款" : order.status === "completed" ? "已付款" : "已取消"}</p>
-                
-                {order.status === "pending" ? (
-                  <p style={{ color: "orange" }}>待付款</p>
-                ) : order.status === "completed" ? (
-                  <p style={{ color: "green" }}>✅ 已付款 ({order.payment})</p>
-                ) : order.status === "cancelled" ? (
-                  <p style={{ color: "red" }}>❌ 已取消</p>
+
+                {/* 控制按钮 */}
+                {order.status === "completed" || order.status === "cancelled" ? (
+                  <p style={{ color: "green" }}>✅ {order.status === "completed" ? "已付款" : "已取消"}</p>
                 ) : (
                   <div>
-                    <button onClick={() => handlePaymentWithConfirmation(index, "cash")}>💵 现金付款</button>
-                    <button onClick={() => handlePaymentWithConfirmation(index, "ewallet")} style={{ marginLeft: 10 }}>
+                    <button onClick={() => handlePaymentWithConfirmation(index, "cash")} disabled={order.status === "cancelled"}>
+                      💵 现金付款
+                    </button>
+                    <button onClick={() => handlePaymentWithConfirmation(index, "ewallet")} style={{ marginLeft: 10 }} disabled={order.status === "cancelled"}>
                       📱 电子钱包付款
                     </button>
                     <button onClick={() => handleCancelPayment(index)} style={{ marginLeft: 10 }}>
