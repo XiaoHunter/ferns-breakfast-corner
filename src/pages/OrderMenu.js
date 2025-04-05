@@ -124,17 +124,21 @@ export default function OrderMenu() {
     let sum = 0;
     for (const item of Object.values(order)) {
       const matched = Object.values(menu).flat().find((d) => d.name === item.name);
-      const noodleOptions = matched?.noodles || []; // safe fallback
       if (!matched) continue;
+
+      const noodleOptions = matched?.noodles || []; // safe fallback
+
       const basePrice =
-        matched.category?.includes("饮料") && item.type === "cold"
-          ? Number(matched.coldPrice || matched.price || 0)
-          : matched.category?.includes("饮料") && item.type === "hot"
-          ? Number(matched.hotPrice || matched.price || 0)
-          : Number(matched.price || 0);
-      const packedFee =
-        matched.category?.includes("饮料") && item.packed ? 0.2 : 0;
-      const addonTotal = item.addons?.reduce((s, a) => s + a.price, 0) || 0;
+        item.type === "cold"
+          ? matched.coldPrice
+          : item.type === "hot"
+          ? matched.hotPrice
+          : matched.price || 0;
+
+      const isDrinkCategory = matched.category && matched.category.startsWith("饮料");
+      const packedFee = isDrinkCategory && item.packed ? 0.2 : 0;
+
+      const addonTotal = (item.addons || []).reduce((s, a) => s + a.price, 0);
       sum += item.qty * (basePrice + packedFee + addonTotal);
     }
     return sum.toFixed(2);
@@ -213,7 +217,7 @@ export default function OrderMenu() {
             <h2 className="text-xl font-bold mb-2">📂 {selectedCategory}</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {menu[selectedCategory].flatMap((item) => {
-                const isDrink = selectedCategory === "饮料";
+                const isDrink = selectedCategory.startsWith("饮料");
                 const types = isDrink ? ["hot", "cold"] : ["standard"];
 
                 return types.map((type) => {
@@ -233,7 +237,7 @@ export default function OrderMenu() {
                   return (
                     <div key={orderKey} className="bg-white p-4 rounded shadow">
                       <h2 className="font-semibold text-lg">
-                        {item.chineseName} ({item.name}){isDrink ? ` - ${type.toUpperCase()}` : ""}
+                        {item.chineseName} ({item.name}){isDrink ? ` - ${type.toUpperCase() : ""}` : ""}
                       </h2>
                       <p>RM {price.toFixed(2)}</p>
                       <label className="block mt-1">
@@ -294,7 +298,7 @@ export default function OrderMenu() {
                           >
                             <option value="">请选择面粉</option>
                             {item.noodles.map((n) => (
-                              <option key={n} value={n}>{n}</option>
+                              <option key={n.name} value={n.name}>{n.name}</option>
                             ))}
                           </select>
                         </div>
@@ -319,7 +323,7 @@ export default function OrderMenu() {
           <ul className="mb-2">
             {Object.values(order).map((item, idx) => (
               <li key={idx}>
-                {item.name} - {item.type.toUpperCase()}
+                {item.name} - {item.type ? item.type.toUpperCase() : "STANDARD"}
                 {item.packed ? "（打包）" : ""}
                 {item.addons?.length ? " + " + item.addons.map((a) => a.name).join(", ") : ""} x {item.qty}
               </li>
