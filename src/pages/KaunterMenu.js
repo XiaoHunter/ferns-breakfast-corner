@@ -46,7 +46,7 @@ const KaunterMenu = () => {
     fetchOrders();
 
     // 设置每 5 秒自动刷新
-    const interval = setInterval(fetchOrders(), 5000);
+    const interval = setInterval(fetchOrders, 5000);
 
     // 清除定时器（组件卸载时）
     return () => clearInterval(interval);
