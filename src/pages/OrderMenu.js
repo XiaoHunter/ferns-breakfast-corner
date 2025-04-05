@@ -73,34 +73,6 @@ export default function OrderMenu() {
     });
   };
 
-  const handleFlavorChange = (item, type, flavor) => {
-    const key = `${item.name}-${type}`;
-    setOrder((prev) => {
-      const existing = prev[key] || { qty: 0, packed: false, addons: [] };
-      return {
-        ...prev,
-        [key]: {
-          ...existing,
-          flavor,
-        },
-      };
-    });
-  };
-
-  const handleNoodleChange = (item, type, noodle) => {
-    const key = `${item.name}-${type}`;
-    setOrder((prev) => {
-      const existing = prev[key] || { qty: 0, packed: false, addons: [] };
-      return {
-        ...prev,
-        [key]: {
-          ...existing,
-          noodleType: noodle,
-        },
-      };
-    });
-  };
-
   const updateOption = (item, type, value) => {
     const key = `${item.name}-${item.type}`;
     const current = order[key] || { qty: 0 };
@@ -126,13 +98,42 @@ export default function OrderMenu() {
     setAddonsStatus((prev) => ({ ...prev, [key]: updated }));
   };
 
+  const handleFlavorChange = (item, type, flavor) => {
+    const key = `${item.name}-${type}`;
+    setOrder((prev) => ({
+      ...prev,
+      [key]: {
+        ...prev[key],
+        flavor,
+      },
+    }));
+  };
+
+  const handleNoodleChange = (item, type, noodle) => {
+    const key = `${item.name}-${type}`;
+    setOrder((prev) => ({
+      ...prev,
+      [key]: {
+        ...prev[key],
+        noodle,
+      },
+    }));
+  };
+
   const getTotal = () => {
     let sum = 0;
     for (const item of Object.values(order)) {
       const matched = Object.values(menu).flat().find((d) => d.name === item.name);
+      const noodleOptions = matched?.noodles || []; // safe fallback
       if (!matched) continue;
-      const basePrice = item.type === "cold" ? matched.coldPrice : matched.hotPrice || matched.price;
-      const packedFee = matched.category === "饮料" && item.packed ? 0.2 : 0;
+      const basePrice =
+        matched.category?.includes("饮料") && item.type === "cold"
+          ? Number(matched.coldPrice || matched.price || 0)
+          : matched.category?.includes("饮料") && item.type === "hot"
+          ? Number(matched.hotPrice || matched.price || 0)
+          : Number(matched.price || 0);
+      const packedFee =
+        matched.category?.includes("饮料") && item.packed ? 0.2 : 0;
       const addonTotal = item.addons?.reduce((s, a) => s + a.price, 0) || 0;
       sum += item.qty * (basePrice + packedFee + addonTotal);
     }
@@ -146,7 +147,7 @@ export default function OrderMenu() {
 
     const items = Object.values(order).map((item) => ({
       name: item.name,
-      type: item.type.toUpperCase(),
+      type: item.type ? item.type.toUpperCase() : "STANDARD",
       qty: item.qty,
       packed: item.packed,
       addons: item.addons || [],
@@ -240,7 +241,7 @@ export default function OrderMenu() {
                           type="checkbox"
                           checked={packed}
                           onChange={() => togglePacked(item, type)}
-                        /> 打包{isDrink ? " (+RM0.20)" : ""}
+                        /> 打包{isDrink ? " (+RM0.20)" : "(免费)"}
                       </label>
                       {item.addons?.length > 0 && (
                         <div className="mt-1">
@@ -284,15 +285,15 @@ export default function OrderMenu() {
                         </div>
                       )}
 
-                      {item.noodleTypes && (
+                      {item.noodles && (
                         <div className="mt-2">
                           <label className="block">选择面粉:</label>
                           <select
-                            value={order[key]?.noodleType || item.defaultNoodleType || ""}
+                            value={order[key]?.noodle || item.defaultNoodleType || ""}
                             onChange={(e) => handleNoodleChange(item, type, e.target.value)}
                           >
                             <option value="">请选择面粉</option>
-                            {item.noodleTypes.map((n) => (
+                            {item.noodles.map((n) => (
                               <option key={n} value={n}>{n}</option>
                             ))}
                           </select>
