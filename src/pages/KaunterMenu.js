@@ -75,17 +75,19 @@ const KaunterMenu = () => {
     item.qty = Math.max(0, item.qty + delta);
     updatedOrder.items[itemIndex] = item;
 
+    // recalculate total using item price info if available
     let newTotal = 0;
     updatedOrder.items.forEach((item) => {
-      const base = item.type === "cold" ? item.coldPrice : item.type === "hot" ? item.hotPrice : item.price || 0;
+      const base = item.type === "cold" ? (item.coldPrice ?? 0)
+                  : item.type === "hot" ? (item.hotPrice ?? 0)
+                  : (item.price ?? 0);
       const packedFee = item.packed ? 0.2 : 0;
-      const addonTotal = (item.addons || []).reduce((sum, a) => sum + a.price, 0);
+      const addonTotal = (item.addons || []).reduce((sum, a) => sum + (a.price || 0), 0);
       newTotal += item.qty * (base + packedFee + addonTotal);
     });
     updatedOrder.total = Number(newTotal.toFixed(2));
 
     updateSingleOrder(updatedOrder);
-
     setOrders((prevOrders) => {
       const newOrders = [...prevOrders];
       newOrders[orderIndex] = updatedOrder;
@@ -154,7 +156,7 @@ const KaunterMenu = () => {
             {order.items.map((item, i) => (
               <li key={i}>
                 {item.name} x {item.qty} {item.packed ? "（打包）" : ""}
-                {order.status !== "completed" && (
+                {order.status !== "completed" && order.status !== "cancelled" && (
                   <>
                     <button onClick={() => updateItemQty(index, i, -1)} className="ml-2 px-2">➖</button>
                     <button onClick={() => updateItemQty(index, i, 1)} className="ml-1 px-2">➕</button>
@@ -163,9 +165,11 @@ const KaunterMenu = () => {
               </li>
             ))}
           </ul>
-          <div className="mt-2">
-            <button onClick={() => goToAddItems(order.orderId)} className="text-blue-600 underline">🛒 添加餐点</button>
-          </div>
+          {(order.status !== "completed" && order.status !== "cancelled") && (
+            <div className="mt-2">
+              <button onClick={() => goToAddItems(order.orderId)} className="text-blue-600 underline">🛒 添加餐点</button>
+            </div>
+          )}
           {order.status === "completed" ? (
             <p style={{ color: "green" }}>✅ 已付款（{order.payment}）</p>
           ) : order.status === "cancelled" ? (

@@ -51,7 +51,9 @@ export default function OrderMenu() {
           const myOrdersOnly = data.filter(o => o.deviceId === deviceId);
           setMyOrders(myOrdersOnly);
 
-          if (!editingOrderId) {
+          const urlParams = new URLSearchParams(window.location.search);
+          const editId = urlParams.get("edit");
+          if (!editId && !editingOrderId) {
             const last = myOrdersOnly.length > 0 ? myOrdersOnly[0] : null;
             if (last) setEditingOrderId(last.orderId);
           }
