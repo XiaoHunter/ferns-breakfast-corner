@@ -99,6 +99,10 @@ export default function OrderMenu() {
 
   const updateQty = (item, type, delta) => {
     const keyBase = `${item.name}-${type}`;
+    const packed = packedStatus[keyBase] || false;
+    const flavor = flavorStatus[keyBase] || (item.category === "云吞面" ? "干" : item.category === "粿条汤" ? "汤" : "");
+    const noodle = noodleStatus[keyBase] || (item.category === "云吞面" ? "Wantan Mee" : item.category === "粿条汤" ? "Koay Teow" : "");
+    const addons = addonsStatus[keyBase] || [];
     const flavorPart = item.noodles || item.types ? `-${flavor}` : "";
     const noodlePart = item.noodles ? `-${noodle}` : "";
     const packedPart = packed ? "-packed" : "";
@@ -140,6 +144,11 @@ export default function OrderMenu() {
   };
 
   const addToOrder = (item, type, qty) => {
+    const keyBase = `${item.name}-${type}`;
+    const packed = packedStatus[keyBase] || false;
+    const flavor = flavorStatus[keyBase] || (item.category === "云吞面" ? "干" : item.category === "粿条汤" ? "汤" : "");
+    const noodle = noodleStatus[keyBase] || (item.category === "云吞面" ? "Wantan Mee" : item.category === "粿条汤" ? "Koay Teow" : "");
+    const addons = addonsStatus[keyBase] || [];
     const flavorPart = item.noodles || item.types ? `-${flavor}` : "";
     const noodlePart = item.noodles ? `-${noodle}` : "";
     const packedPart = packed ? "-packed" : "";
@@ -301,14 +310,18 @@ export default function OrderMenu() {
                 const types = [selectedType];
 
                 return types.map((type) => {
-                  const key = `${item.name}-${type}`;
+                  const keyBase = `${item.name}-${type}`;
+                  const packed = packedStatus[keyBase] || false;
+                  const flavor = flavorStatus[keyBase] || (item.category === "云吞面" ? "干" : item.category === "粿条汤" ? "汤" : "");
+                  const noodle = noodleStatus[keyBase] || (item.category === "云吞面" ? "Wantan Mee" : item.category === "粿条汤" ? "Koay Teow" : "");
+                  const addons = addonsStatus[keyBase] || [];
                   const flavorPart = item.noodles || item.types ? `-${flavor}` : "";
                   const noodlePart = item.noodles ? `-${noodle}` : "";
                   const packedPart = packed ? "-packed" : "";
                   const addonPart = addons.length ? "-addons" : "";
 
-                  const orderKey = `${item.name}-${type}${flavorPart}${noodlePart}${packedPart}${addonPart}`;
-                  const ordered = order[orderKey];
+                  const key = `${item.name}-${type}${flavorPart}${noodlePart}${packedPart}${addonPart}`;
+                  const ordered = order[key];
                   const unitPrice = isDrink
                     ? (type === "hot"
                         ? Number(item.hotPrice || item.price || 0)
@@ -318,9 +331,9 @@ export default function OrderMenu() {
                   const price = unitPrice + (isDrink && packed ? 0.2 : 0) + addonTotal;
 
                   return (
-                    <div key={orderKey} className="bg-white p-4 rounded shadow">
+                    <div key={key} className="bg-white p-4 rounded shadow">
                       <h2 className="font-semibold text-lg">
-                        {item.chineseName} ({item.name})
+                        {item.chineseName}
                       </h2>
                       <p>RM {price.toFixed(2)}</p>
                       <label className="block mt-1">
