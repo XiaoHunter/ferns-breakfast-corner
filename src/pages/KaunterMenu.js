@@ -45,50 +45,39 @@ const KaunterMenu = () => {
   }, [token]);
 
   const handlePaymentWithConfirmation = (index, method) => {
-    const order = orders[index];
-    if (!order || order.status !== "pending") return;
-
-    const confirmMsg = `确认使用 ${method === "cash" ? "💵 现金" : "📱 电子钱包"} 付款？`;
-    if (!window.confirm(confirmMsg)) return;
-
-    fetch("https://ferns-breakfast-corner.com/api/update-order.php", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        orderId: order.orderId,
-        items: order.items,
-        payment: method,
-      }),
-    })
-      .then((res) => res.json())
-      .then((res) => {
-        if (res.status === "success") fetchOrders();
-        else alert("❌ 更新失败: " + res.message);
-      })
-      .catch(() => alert("❌ 网络错误，请稍后再试"));
+    const label = method === "cash" ? "💵 现金" : "📱 电子钱包";
+    const confirmed = window.confirm(`确认使用 ${label} 付款？`);
+    if (!confirmed) return;
+    handlePayment(index, method);
   };
 
   const handleCancelPayment = (index) => {
-    const order = orders[index];
-    if (!order || order.status !== "pending") return;
+    const confirmed = window.confirm("❌ 确定要取消付款吗？");
+    if (!confirmed) return;
+    handlePayment(index, "cancel");
+  };
 
-    if (!window.confirm("确定要取消付款吗？")) return;
-
+  const handlePayment = (index, method) => {
+    const updatedOrder = { ...orders[index], status: method === "cancel" ? "cancelled" : "completed", payment: method };
     fetch("https://ferns-breakfast-corner.com/api/update-order.php", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        orderId: order.orderId,
-        items: order.items,
-        payment: "cancel",
-      }),
+      body: JSON.stringify(updatedOrder),
     })
       .then((res) => res.json())
-      .then((res) => {
-        if (res.status === "success") fetchOrders();
-        else alert("❌ 取消失败: " + res.message);
+      .then((data) => {
+        if (data.status === "success") {
+          const newOrders = [...orders];
+          newOrders[index] = updatedOrder;
+          setOrders(newOrders);
+        } else {
+          alert("❌ 更新失败，请稍后重试。");
+        }
       })
-      .catch(() => alert("❌ 网络错误，请稍后再试"));
+      .catch((err) => {
+        console.error("Payment update failed:", err);
+        alert("❌ 网络错误，请稍后重试！");
+      });
   };
 
   if (!token) {
