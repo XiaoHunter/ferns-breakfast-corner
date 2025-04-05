@@ -59,7 +59,7 @@ export default function OrderMenu() {
   useEffect(() => {
     const fetchOrders = () => {
       const today = getMalaysiaToday();
-      fetch(`https://ferns-breakfast-corner.com/orders/orders-${today}.json`)
+      fetch(`https://ferns-breakfast-corner.com/orders/orders-${today}.json?t=${Date.now()}`)
         .then(res => res.json())
         .then(data => {
           const myOrdersOnly = data.filter(o => o.deviceId === deviceId);

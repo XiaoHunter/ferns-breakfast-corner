@@ -19,7 +19,7 @@ const KaunterMenu = () => {
 
     const fetchOrders = () => {
       const today = getMalaysiaToday();
-      fetch(`https://ferns-breakfast-corner.com/orders/orders-${today}.json`)
+      fetch(`https://ferns-breakfast-corner.com/orders/orders-${today}.json?t=${Date.now()}`)
         .then((res) => res.json())
         .then((data) => setOrders(data.reverse()));
     };
