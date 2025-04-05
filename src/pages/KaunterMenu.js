@@ -28,17 +28,20 @@ const KaunterMenu = () => {
       .then((data) => setOrders(data.reverse()));
   }, [token]);
 
-  const updateOrders = (updatedList) => {
+  const updateSingleOrder = (order) => {
     fetch("https://ferns-breakfast-corner.com/api/update-order.php", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(updatedList),
+      body: JSON.stringify(order),
     })
       .then((res) => res.json())
       .then((res) => {
         if (res.status === "success") {
           alert("✅ 更新成功");
-          setOrders(updatedList);
+          const today = new Date().toISOString().split("T")[0];
+          fetch(`https://ferns-breakfast-corner.com/orders/orders-${today}.json`)
+            .then((res) => res.json())
+            .then((data) => setOrders(data.reverse()));
         } else {
           alert("❌ 更新失败: " + res.message);
         }
@@ -46,32 +49,28 @@ const KaunterMenu = () => {
   };
 
   const markAsPaid = (index, method) => {
-    const updated = [...orders];
-    updated[index].status = "completed";
-    updated[index].payment = method;
-    updateOrders(updated);
+    const updatedOrder = { ...orders[index], status: "completed", payment: method };
+    updateSingleOrder(updatedOrder);
   };
 
   const cancelOrder = (index) => {
     if (window.confirm("是否取消该订单？")) {
-      const updated = [...orders];
-      updated[index].status = "cancelled";
-      updateOrders(updated);
+      const updatedOrder = { ...orders[index], status: "cancelled" };
+      updateSingleOrder(updatedOrder);
     }
   };
 
   const removeItem = (orderIndex, itemIndex) => {
-    const updated = [...orders];
-    updated[orderIndex].items.splice(itemIndex, 1);
-    updateOrders(updated);
+    const updatedOrder = { ...orders[orderIndex] };
+    updatedOrder.items.splice(itemIndex, 1);
+    updateSingleOrder(updatedOrder);
   };
 
   const updateTable = (index, newTable) => {
-    const updated = [...orders];
-    updated[index].table = newTable;
-    updateOrders(updated);
+    const updatedOrder = { ...orders[index], table: newTable };
+    updateSingleOrder(updatedOrder);
   };
-
+  
   if (!token) {
     return (
       <div className="p-4">
