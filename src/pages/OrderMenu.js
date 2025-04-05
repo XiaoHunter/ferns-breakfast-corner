@@ -73,6 +73,18 @@ export default function OrderMenu() {
     });
   };
 
+  const updateOption = (item, type, value) => {
+    const key = `${item.name}-${item.type}`;
+    const current = order[key] || { qty: 0 };
+    setOrder({
+      ...order,
+      [key]: {
+        ...current,
+        [type]: value,
+      },
+    });
+  };
+
   const togglePacked = (item, type) => {
     const key = `${item.name}-${type}`;
     setPackedStatus((prev) => ({ ...prev, [key]: !prev[key] }));
@@ -213,40 +225,29 @@ export default function OrderMenu() {
                           ))}
                         </div>
                       )}
-                      
+
                       {item.types && (
-                        <div className="mt-1">
-                          <label className="block font-medium">选择口味：</label>
-                          {item.types.map((t) => (
-                            <label key={t} className="inline-block mr-2">
-                              <input
-                                type="radio"
-                                name={`${item.name}-type`}
-                                value={t}
-                                checked={type === t}
-                                onChange={() => updateQty(item, t, 0)} // 切换 type
-                              /> {t === "dry" ? "干" : "汤"}
-                            </label>
-                          ))}
+                        <div className="mt-2">
+                          <label className="block">选择口味:</label>
+                          <label><input type="radio" name={`flavor-${item.name}-${item.type}`} value="dry"
+                            checked={(order[orderKey]?.flavor || item.defaultFlavor || "") === "dry"}
+                            onChange={() => updateOption(item, "flavor", "dry")} /> 干</label>
+                          <label className="ml-2"><input type="radio" name={`flavor-${item.name}-${item.type}`} value="soup"
+                            checked={(order[orderKey]?.flavor || item.defaultFlavor || "") === "soup"}
+                            onChange={() => updateOption(item, "flavor", "soup")} /> 汤</label>
                         </div>
                       )}
 
                       {item.noodles && (
-                        <div className="mt-1">
-                          <label className="block font-medium">选择面粉：</label>
+                        <div className="mt-2">
+                          <label className="block">选择面粉:</label>
                           <select
-                            value={item.selectedNoodle || ""}
-                            onChange={(e) => {
-                              const selectedNoodle = item.noodles.find(n => n.name === e.target.value);
-                              toggleAddon(item, type, { name: selectedNoodle.name, price: 0 });
-                            }}
-                            className="border rounded px-2 py-1 text-sm"
+                            value={order[orderKey]?.noodleType || ""}
+                            onChange={(e) => updateOption(item, "noodleType", e.target.value)}
                           >
                             <option value="">请选择面粉</option>
-                            {item.noodles.map((noodle) => (
-                              <option key={noodle.name} value={noodle.name}>
-                                {noodle.chineseName} ({noodle.name})
-                              </option>
+                            {item.noodleTypes?.map((noodle) => (
+                              <option key={noodle} value={noodle}>{noodle}</option>
                             ))}
                           </select>
                         </div>
