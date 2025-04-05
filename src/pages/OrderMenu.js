@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 
 export default function OrderMenu() {
-  const [drinks, setDrinks] = useState([]);
+  const [menu, setMenu] = useState({});
   const [order, setOrder] = useState({});
   const [packedStatus, setPackedStatus] = useState({});
   const [addonsStatus, setAddonsStatus] = useState({});
@@ -11,16 +11,21 @@ export default function OrderMenu() {
     fetch("https://ferns-breakfast-corner.com/items/orders-items")
       .then((res) => res.json())
       .then((data) => {
-        setDrinks(data);
+        const categorized = data.reduce((acc, item) => {
+          if (!acc[item.category]) acc[item.category] = [];
+          acc[item.category].push(item);
+          return acc;
+        }, {});
+        setMenu(categorized);
         setLoading(false);
       });
   }, []);
 
-  const updateQty = (drink, type, delta) => {
-    const packed = packedStatus[`${drink.name}-${type}`] || false;
-    const addons = addonsStatus[`${drink.name}-${type}`] || [];
+  const updateQty = (item, type, delta) => {
+    const packed = packedStatus[`${item.name}-${type}`] || false;
+    const addons = addonsStatus[`${item.name}-${type}`] || [];
+    const key = item.name + "-" + type + (packed ? "-packed" : "") + (addons.length ? "-addons" : "");
 
-    const key = drink.name + "-" + type + (packed ? "-packed" : "") + (addons.length ? "-addons" : "");
     setOrder((prev) => {
       const qty = (prev[key]?.qty || 0) + delta;
       if (qty <= 0) {
@@ -30,7 +35,7 @@ export default function OrderMenu() {
       return {
         ...prev,
         [key]: {
-          name: drink.name,
+          name: item.name,
           type,
           packed,
           addons,
@@ -40,29 +45,28 @@ export default function OrderMenu() {
     });
   };
 
-  const togglePacked = (drink, type) => {
-    const statusKey = `${drink.name}-${type}`;
+  const togglePacked = (item, type) => {
+    const statusKey = `${item.name}-${type}`;
     const newStatus = !packedStatus[statusKey];
     setPackedStatus({ ...packedStatus, [statusKey]: newStatus });
   };
 
-  const toggleAddon = (drink, type, addon) => {
-    const key = `${drink.name}-${type}`;
+  const toggleAddon = (item, type, addon) => {
+    const key = `${item.name}-${type}`;
     const current = addonsStatus[key] || [];
     const exists = current.find((a) => a.name === addon.name);
     const updated = exists
       ? current.filter((a) => a.name !== addon.name)
       : [...current, addon];
-
     setAddonsStatus({ ...addonsStatus, [key]: updated });
   };
 
   const getTotal = () => {
     let sum = 0;
     for (const item of Object.values(order)) {
-      const drink = drinks.find((d) => d.name === item.name);
-      if (!drink) continue;
-      const basePrice = item.type === "cold" ? drink.coldPrice : drink.hotPrice;
+      const matched = Object.values(menu).flat().find((d) => d.name === item.name);
+      if (!matched) continue;
+      const basePrice = item.type === "cold" ? matched.coldPrice : matched.hotPrice;
       const packedFee = item.packed ? 0.2 : 0;
       const addonTotal = item.addons?.reduce((s, a) => s + a.price, 0) || 0;
       sum += item.qty * (basePrice + packedFee + addonTotal);
@@ -90,9 +94,7 @@ export default function OrderMenu() {
 
     fetch("https://ferns-breakfast-corner.com/api/send-order.php", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
     })
       .then((res) => res.json())
@@ -111,66 +113,65 @@ export default function OrderMenu() {
   return (
     <div className="p-4 bg-yellow-100 min-h-screen">
       <h1 className="text-2xl font-bold mb-4">🧋 Order Menu</h1>
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-        {drinks.map((drink) =>
-          ["hot", "cold"].map((type) => {
-            const statusKey = `${drink.name}-${type}`;
-            const packed = packedStatus[statusKey] || false;
-            const addons = addonsStatus[statusKey] || [];
-            const key = drink.name + "-" + type + (packed ? "-packed" : "") + (addons.length ? "-addons" : "");
-            const item = order[key];
-            const base = type === "hot" ? drink.hotPrice : drink.coldPrice;
-            const addonTotal = addons.reduce((sum, a) => sum + a.price, 0);
-            const price = base + (packed ? 0.2 : 0) + addonTotal;
+      {Object.entries(menu).map(([category, items]) => (
+        <div key={category} className="mb-6">
+          <h2 className="text-xl font-bold mb-2">📂 {category}</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            {items.map((item) =>
+              ["hot", "cold"].map((type) => {
+                const statusKey = `${item.name}-${type}`;
+                const packed = packedStatus[statusKey] || false;
+                const addons = addonsStatus[statusKey] || [];
+                const key = item.name + "-" + type + (packed ? "-packed" : "") + (addons.length ? "-addons" : "");
+                const ordered = order[key];
+                const base = type === "hot" ? item.hotPrice : item.coldPrice;
+                const addonTotal = addons.reduce((sum, a) => sum + a.price, 0);
+                const price = base + (packed ? 0.2 : 0) + addonTotal;
 
-            return (
-              <div key={key} className="bg-white p-4 rounded shadow">
-                <h2 className="font-semibold text-lg">
-                  {drink.chineseName} ({drink.name}) - {type.toUpperCase()}
-                </h2>
-                <p>RM {price.toFixed(2)}</p>
-                <label className="block mt-1">
-                  <input
-                    type="checkbox"
-                    checked={packed}
-                    onChange={() => togglePacked(drink, type)}
-                  />{" "}
-                  打包 (+RM0.20)
-                </label>
-                {drink.addons?.length > 0 && (
-                  <div className="mt-1">
-                    {drink.addons.map((addon) => (
-                      <label key={addon.name} className="block text-sm">
-                        <input
-                          type="checkbox"
-                          checked={addons.some((a) => a.name === addon.name)}
-                          onChange={() => toggleAddon(drink, type, addon)}
-                        />{" "}
-                        {addon.name} (+RM{addon.price.toFixed(2)})
-                      </label>
-                    ))}
+                return (
+                  <div key={key} className="bg-white p-4 rounded shadow">
+                    <h2 className="font-semibold text-lg">
+                      {item.chineseName} ({item.name}) - {type.toUpperCase()}
+                    </h2>
+                    <p>RM {price.toFixed(2)}</p>
+                    <label className="block mt-1">
+                      <input
+                        type="checkbox"
+                        checked={packed}
+                        onChange={() => togglePacked(item, type)}
+                      /> 打包 (+RM0.20)
+                    </label>
+                    {item.addons?.length > 0 && (
+                      <div className="mt-1">
+                        {item.addons.map((addon) => (
+                          <label key={addon.name} className="block text-sm">
+                            <input
+                              type="checkbox"
+                              checked={addons.some((a) => a.name === addon.name)}
+                              onChange={() => toggleAddon(item, type, addon)}
+                            /> {addon.name} (+RM{addon.price.toFixed(2)})
+                          </label>
+                        ))}
+                      </div>
+                    )}
+                    <div className="flex gap-2 mt-2">
+                      <button
+                        className="px-3 py-1 bg-gray-300 rounded"
+                        onClick={() => updateQty(item, type, -1)}
+                      >-</button>
+                      <span>{ordered?.qty || 0}</span>
+                      <button
+                        className="px-3 py-1 bg-green-400 rounded"
+                        onClick={() => updateQty(item, type, 1)}
+                      >+</button>
+                    </div>
                   </div>
-                )}
-                <div className="flex gap-2 mt-2">
-                  <button
-                    className="px-3 py-1 bg-gray-300 rounded"
-                    onClick={() => updateQty(drink, type, -1)}
-                  >
-                    -
-                  </button>
-                  <span>{item?.qty || 0}</span>
-                  <button
-                    className="px-3 py-1 bg-green-400 rounded"
-                    onClick={() => updateQty(drink, type, 1)}
-                  >
-                    +
-                  </button>
-                </div>
-              </div>
-            );
-          })
-        )}
-      </div>
+                );
+              })
+            )}
+          </div>
+        </div>
+      ))}
 
       <div className="mt-6 p-4 bg-white rounded shadow">
         <h2 className="text-xl font-semibold mb-2">🧾 当前订单</h2>
@@ -179,27 +180,14 @@ export default function OrderMenu() {
             <li key={idx}>
               {item.name} - {item.type.toUpperCase()}
               {item.packed ? "（打包）" : ""}
-              {item.addons?.length
-                ? " + " + item.addons.map((a) => a.name).join(", ")
-                : ""}{" "}
-              x {item.qty}
+              {item.addons?.length ? " + " + item.addons.map((a) => a.name).join(", ") : ""} x {item.qty}
             </li>
           ))}
         </ul>
         <h2 className="text-lg font-bold">总价: RM {getTotal()}</h2>
         <div className="mt-2 flex gap-4">
-          <button
-            className="px-4 py-2 bg-red-500 text-white rounded"
-            onClick={clearOrder}
-          >
-            清空
-          </button>
-          <button
-            className="px-4 py-2 bg-blue-500 text-white rounded"
-            onClick={handleRequestBill}
-          >
-            请求账单
-          </button>
+          <button className="px-4 py-2 bg-red-500 text-white rounded" onClick={clearOrder}>清空</button>
+          <button className="px-4 py-2 bg-blue-500 text-white rounded" onClick={handleRequestBill}>请求账单</button>
         </div>
       </div>
     </div>
