@@ -54,6 +54,11 @@ const KaunterMenu = () => {
   const handlePaymentWithConfirmation = (index, paymentMethod) => {
     const order = orders[index];
 
+    if (order.status === "completed" || order.status === "cancelled") {
+      alert('此订单已经处理，无法再次修改');
+      return;
+    }
+
     if (window.confirm("确认付款？")) {
       const updatedOrder = {
         ...order,
@@ -141,6 +146,13 @@ const KaunterMenu = () => {
                 }
                 </ul>
                 {/* Add the status display here */}
+                <p><strong>付款方式:</strong> 
+                  {order.status === 'pending' && !order.payment
+                    ? '未选择支付方式' 
+                    : order.payment === 'cash' 
+                    ? '现金支付' 
+                    : '电子钱包'}
+                </p>
                 <p><strong>状态:</strong> {order.status === "pending" ? "待付款" : order.status === "completed" ? "已付款" : "已取消"}</p>
                 
                 {order.status === "pending" ? (
