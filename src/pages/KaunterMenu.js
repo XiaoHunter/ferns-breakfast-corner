@@ -28,10 +28,13 @@ const KaunterMenu = () => {
     if (!token) return;
 
     const today = new Date().toISOString().split("T")[0];
-    const url = `https://ferns-breakfast-corner.com/orders/orders-${today}.json`;
-    
+    const timestamp = new Date().getTime(); // 加上当前时间戳
+    const url = `https://ferns-breakfast-corner.com/orders/orders-${today}.json?t=${timestamp}`;
+
     fetch(url, {
-      headers: { Authorization: `Bearer ${token}` },
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
     })
       .then((res) => res.json())
       .then((data) => {

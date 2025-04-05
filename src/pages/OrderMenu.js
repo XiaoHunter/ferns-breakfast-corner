@@ -50,6 +50,7 @@ export default function OrderMenu() {
   };
 
   const clearOrder = () => setOrder({});
+  
   const handleRequestBill = () => {
     const deviceId = "device-" + Math.random().toString(36).substring(2, 8);
     const items = Object.entries(order).map(([key, item]) => {
