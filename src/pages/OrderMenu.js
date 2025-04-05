@@ -7,6 +7,13 @@ export default function OrderMenu() {
   const [packedStatus, setPackedStatus] = useState({});
   const [addonsStatus, setAddonsStatus] = useState({});
   const [loading, setLoading] = useState(true);
+  const deviceId = useRef(() => {
+    const stored = localStorage.getItem("deviceId");
+    if (stored) return stored;
+    const newId = "device-" + Math.random().toString(36).substring(2, 8);
+    localStorage.setItem("deviceId", newId);
+    return newId;
+  })();
 
   useEffect(() => {
     fetch("https://ferns-breakfast-corner.com/items/orders-items.json")
@@ -75,7 +82,8 @@ export default function OrderMenu() {
   const clearOrder = () => setOrder({});
 
   const handleRequestBill = () => {
-    const deviceId = "device-" + Math.random().toString(36).substring(2, 8);
+    if (!window.confirm("是否确认送出订单？")) return;
+
     const items = Object.values(order).map((item) => ({
       name: item.name,
       type: item.type.toUpperCase(),
@@ -84,10 +92,14 @@ export default function OrderMenu() {
       addons: item.addons || [],
     }));
 
+    const today = new Date().toISOString().split("T")[0];
     const data = {
       deviceId,
       items,
       total: getTotal(),
+      time: new Date().toISOString(),
+      status: "pending",
+      payment: "",
     };
 
     fetch("https://ferns-breakfast-corner.com/api/send-order.php", {
