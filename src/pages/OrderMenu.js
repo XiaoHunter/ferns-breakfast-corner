@@ -346,7 +346,7 @@ export default function OrderMenu() {
                         <div className="mt-2">
                           <label className="block">选择面粉:</label>
                           <select
-                            value={noodleStatus[key] ?? ""}
+                            value={order[key]?.noodle || noodleStatus[keyBase] || ""}
                             onChange={(e) => handleNoodleChange(item, type, e.target.value)}
                           >
                             <option value="">请选择面粉</option>
