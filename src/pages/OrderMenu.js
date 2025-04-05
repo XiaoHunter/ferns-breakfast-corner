@@ -53,26 +53,6 @@ export default function OrderMenu() {
   }, [deviceId]);
 
   useEffect(() => {
-    // 初始化默认口味和面粉
-    const initialNoodleStatus = {};
-    const initialFlavorStatus = {};
-
-    Object.values(menu).flat().forEach((item) => {
-      const key = `${item.name}-STANDARD`;
-      if (item.category === "粿条汤") {
-        initialNoodleStatus[key] = "Koay Teow";
-        initialFlavorStatus[key] = "汤";
-      } else if (item.category === "云吞面") {
-        initialNoodleStatus[key] = "Wantan Mee";
-        initialFlavorStatus[key] = "干";
-      }
-    });
-
-    setNoodleStatus(initialNoodleStatus);
-    setFlavorStatus(initialFlavorStatus);
-  }, [menu]);
-
-  useEffect(() => {
     if (!menu) return;
 
     const updated = {};
@@ -102,7 +82,7 @@ export default function OrderMenu() {
     const packed = packedStatus[keyBase] || false;
     const isNoodleCategory = item.category === "云吞面" || item.category === "粿条汤";
     const flavor = flavorStatus[keyBase] || (isNoodleCategory ? (item.category === "云吞面" ? "干" : "汤") : "");
-    const noodle = noodleStatus[keyBase] || (item.category === "云吞面" ? "Wantan Mee" : item.category === "粿条汤" ? "Koay Teow" : "");
+    const noodle = noodleStatus[keyBase] !== undefined ? noodleStatus[keyBase] : (item.category === "云吞面" ? "Wantan Mee" : item.category === "粿条汤" ? "Koay Teow" : "");
     const addons = addonsStatus[keyBase] || [];
     const flavorPart = item.noodles || item.types ? `-${flavor}` : "";
     const noodlePart = item.noodles ? `-${noodle}` : "";
@@ -122,8 +102,8 @@ export default function OrderMenu() {
         [key]: {
           name: item.name,
           type,
-          packed,
-          addons,
+          packed: packed,
+          addons: selectedAddons,
           qty,
           flavor,
           noodle
@@ -141,47 +121,6 @@ export default function OrderMenu() {
         ...current,
         [type]: value,
       },
-    });
-  };
-
-  const addToOrder = (item, type, qty) => {
-    const keyBase = `${item.name}-${type}`;
-    const packed = packedStatus[keyBase] || false;
-    const isNoodleCategory = item.category === "云吞面" || item.category === "粿条汤";
-    const flavor = flavorStatus[keyBase] || (isNoodleCategory ? (item.category === "云吞面" ? "干" : "汤") : "");
-    const noodle = noodleStatus[keyBase] || (item.category === "云吞面" ? "Wantan Mee" : item.category === "粿条汤" ? "Koay Teow" : "");
-    const addons = addonsStatus[keyBase] || [];
-    const flavorPart = item.noodles || item.types ? `-${flavor}` : "";
-    const noodlePart = item.noodles ? `-${noodle}` : "";
-    const packedPart = packed ? "-packed" : "";
-    const addonPart = addons.length ? "-addons" : "";
-
-    const key = `${item.name}-${type}${flavorPart}${noodlePart}${packedPart}${addonPart}`;
-
-    const updatedItem = {
-      name: item.name,
-      type,
-      qty,
-      packed,
-      flavor,
-      noodle,
-      addons,
-    };
-
-    setOrder((prev) => {
-      const prevQty = prev[key]?.qty || 0;
-      return {
-        ...prev,
-        [key]: {
-          name: item.name,
-          type,
-          qty: prevQty + qty,
-          packed,
-          flavor,
-          noodle,
-          addons,
-        },
-      };
     });
   };
 
