@@ -1,4 +1,4 @@
-// ✅ 前端 React (KaunterMenu.js) - 修改登录逻辑 + 修复状态处理 + 确保付款/取消后不重复提交
+// ✅ KaunterMenu.js - 含独立付款/取消函数、状态判断、自动刷新
 
 import React, { useEffect, useState } from "react";
 
@@ -27,10 +27,7 @@ const KaunterMenu = () => {
   const fetchOrders = () => {
     if (!token) return;
     fetch("https://ferns-breakfast-corner.com/api/orders.json", {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => res.json())
       .then((data) => {
@@ -47,14 +44,12 @@ const KaunterMenu = () => {
     if (token) fetchOrders();
   }, [token]);
 
-  const updateOrder = (index, paymentMethod) => {
+  const handlePaymentWithConfirmation = (index, method) => {
     const order = orders[index];
-    if (!order || order.status !== "pending") return; // 防止重复操作
+    if (!order || order.status !== "pending") return;
 
-    const confirmed = window.confirm(
-      paymentMethod === "cancel" ? "确定要取消付款吗？" : "确认已收到付款？"
-    );
-    if (!confirmed) return;
+    const confirmMsg = `确认使用 ${method === "cash" ? "💵 现金" : "📱 电子钱包"} 付款？`;
+    if (!window.confirm(confirmMsg)) return;
 
     fetch("https://ferns-breakfast-corner.com/api/update-order.php", {
       method: "POST",
@@ -62,18 +57,38 @@ const KaunterMenu = () => {
       body: JSON.stringify({
         orderId: order.orderId,
         items: order.items,
-        payment: paymentMethod,
+        payment: method,
       }),
     })
       .then((res) => res.json())
       .then((res) => {
-        if (res.status === "success") {
-          fetchOrders();
-        } else {
-          alert("更新失败: " + res.message);
-        }
+        if (res.status === "success") fetchOrders();
+        else alert("❌ 更新失败: " + res.message);
       })
-      .catch(() => alert("❌ 网络错误，请稍后再试！"));
+      .catch(() => alert("❌ 网络错误，请稍后再试"));
+  };
+
+  const handleCancelPayment = (index) => {
+    const order = orders[index];
+    if (!order || order.status !== "pending") return;
+
+    if (!window.confirm("确定要取消付款吗？")) return;
+
+    fetch("https://ferns-breakfast-corner.com/api/update-order.php", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        orderId: order.orderId,
+        items: order.items,
+        payment: "cancel",
+      }),
+    })
+      .then((res) => res.json())
+      .then((res) => {
+        if (res.status === "success") fetchOrders();
+        else alert("❌ 取消失败: " + res.message);
+      })
+      .catch(() => alert("❌ 网络错误，请稍后再试"));
   };
 
   if (!token) {
@@ -110,13 +125,27 @@ const KaunterMenu = () => {
                 <li key={i}>{item.name} x {item.qty} {item.packed ? "（打包）" : ""}</li>
               ))}
             </ul>
-            <p><strong>付款方式:</strong> {order.status === "pending" ? "未选择支付方式" : order.payment === "cash" ? "现金支付" : order.payment === "ewallet" ? "电子钱包" : "-"}</p>
-            <p><strong>状态:</strong> {order.status === "completed" ? "✅ 已付款（" + order.payment + "）" : order.status === "cancelled" ? "❌ 已取消" : "⏳ 待付款"}</p>
+            <p><strong>付款方式:</strong> {
+              order.status === "pending"
+                ? "未选择支付方式"
+                : order.payment === "cash"
+                ? "现金支付"
+                : order.payment === "ewallet"
+                ? "电子钱包"
+                : "-"
+            }</p>
+            <p><strong>状态:</strong> {
+              order.status === "completed"
+                ? `✅ 已付款（${order.payment}）`
+                : order.status === "cancelled"
+                ? "❌ 已取消"
+                : "⏳ 待付款"
+            }</p>
             {order.status === "pending" && (
               <div>
-                <button onClick={() => updateOrder(index, "cash")}>💵 现金付款</button>
-                <button onClick={() => updateOrder(index, "ewallet")} style={{ marginLeft: 10 }}>📱 电子钱包付款</button>
-                <button onClick={() => updateOrder(index, "cancel")} style={{ marginLeft: 10 }}>❌ 取消付款</button>
+                <button onClick={() => handlePaymentWithConfirmation(index, "cash")}>💵 现金付款</button>
+                <button onClick={() => handlePaymentWithConfirmation(index, "ewallet")} style={{ marginLeft: 10 }}>📱 电子钱包付款</button>
+                <button onClick={() => handleCancelPayment(index)} style={{ marginLeft: 10 }}>❌ 取消付款</button>
               </div>
             )}
           </div>
