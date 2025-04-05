@@ -100,8 +100,8 @@ export default function OrderMenu() {
   const updateQty = (item, type, delta) => {
     const packed = packedStatus[`${item.name}-${type}`] || false;
     const addons = addonsStatus[`${item.name}-${type}`] || [];
-    const flavor = flavorStatus[`${item.name}-${type}`] || "";
-    const noodle = noodleStatus[`${item.name}-${type}`] || "";
+    const flavor = flavorStatus[`${item.name}-${type}`] ?? "";
+    const noodle = noodleStatus[`${item.name}-${type}`] ?? "";
     const key = `${item.name}-${type}-${flavor}-${noodle}${packed ? "-packed" : ""}${addons.length ? "-addons" : ""}`;
 
     setOrder((prev) => {
@@ -138,11 +138,11 @@ export default function OrderMenu() {
   };
 
   const addToOrder = (item, type, qty) => {
-    const key = `${item.name}-${type}`;
     const flavor = flavorStatus[key] || ""; // 加入口味
     const noodle = noodleStatus[key] || ""; // 加入面粉
     const packed = packedStatus[key] || false;
     const addons = addonsStatus[key] || [];
+    const key = `${item.name}-${type}-${flavor}-${noodle}${packed ? "-packed" : ""}${addons.length ? "-addons" : ""}`;
 
     const updatedItem = {
       name: item.name,
@@ -154,10 +154,21 @@ export default function OrderMenu() {
       addons,
     };
 
-    setOrder((prev) => ({
-      ...prev,
-      [key]: updatedItem,
-    }));
+    setOrder((prev) => {
+      const prevQty = prev[key]?.qty || 0;
+      return {
+        ...prev,
+        [key]: {
+          name: item.name,
+          type,
+          qty: prevQty + qty,
+          packed,
+          flavor,
+          noodle,
+          addons,
+        },
+      };
+    });
   };
 
   const togglePacked = (item, type) => {
