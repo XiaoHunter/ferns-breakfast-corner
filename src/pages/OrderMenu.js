@@ -66,8 +66,8 @@ export default function OrderMenu() {
     for (const item of Object.values(order)) {
       const matched = Object.values(menu).flat().find((d) => d.name === item.name);
       if (!matched) continue;
-      const basePrice = item.type === "cold" ? matched.coldPrice : matched.hotPrice;
-      const packedFee = item.packed ? 0.2 : 0;
+      const basePrice = item.type === "cold" ? matched.coldPrice : matched.hotPrice || matched.price;
+      const packedFee = matched.category === "饮料" && item.packed ? 0.2 : 0;
       const addonTotal = item.addons?.reduce((s, a) => s + a.price, 0) || 0;
       sum += item.qty * (basePrice + packedFee + addonTotal);
     }
@@ -117,21 +117,24 @@ export default function OrderMenu() {
         <div key={category} className="mb-6">
           <h2 className="text-xl font-bold mb-2">📂 {category}</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-            {items.map((item) =>
-              ["hot", "cold"].map((type) => {
+            {items.map((item) => {
+              const isDrink = category === "饮料";
+              const types = isDrink ? ["hot", "cold"] : ["standard"];
+
+              return types.map((type) => {
                 const statusKey = `${item.name}-${type}`;
                 const packed = packedStatus[statusKey] || false;
                 const addons = addonsStatus[statusKey] || [];
                 const key = item.name + "-" + type + (packed ? "-packed" : "") + (addons.length ? "-addons" : "");
                 const ordered = order[key];
-                const base = type === "hot" ? item.hotPrice : item.coldPrice;
+                const base = isDrink ? (type === "hot" ? item.hotPrice : item.coldPrice) : item.price;
                 const addonTotal = addons.reduce((sum, a) => sum + a.price, 0);
-                const price = base + (packed ? 0.2 : 0) + addonTotal;
+                const price = base + (isDrink && packed ? 0.2 : 0) + addonTotal;
 
                 return (
                   <div key={key} className="bg-white p-4 rounded shadow">
                     <h2 className="font-semibold text-lg">
-                      {item.chineseName} ({item.name}) - {type.toUpperCase()}
+                      {item.chineseName} ({item.name}){isDrink ? ` - ${type.toUpperCase()}` : ""}
                     </h2>
                     <p>RM {price.toFixed(2)}</p>
                     <label className="block mt-1">
@@ -139,7 +142,7 @@ export default function OrderMenu() {
                         type="checkbox"
                         checked={packed}
                         onChange={() => togglePacked(item, type)}
-                      /> 打包 (+RM0.20)
+                      /> 打包{isDrink ? " (+RM0.20)" : " (免费)"}
                     </label>
                     {item.addons?.length > 0 && (
                       <div className="mt-1">
@@ -167,8 +170,8 @@ export default function OrderMenu() {
                     </div>
                   </div>
                 );
-              })
-            )}
+              });
+            })}
           </div>
         </div>
       ))}
