@@ -166,7 +166,7 @@ export default function OrderMenu() {
 
       const isDrinkCategory = matched.category && matched.category.startsWith("饮料");
       const key = `${item.name}-${item.type}`;
-      const packedFee = 0;
+      let packedFee = 0;
       if (item.packed && isDrinkCategory) packedIncluded = true;
       if (packedIncluded) packedFee = 0.2;
 
