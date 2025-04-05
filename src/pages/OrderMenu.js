@@ -240,29 +240,30 @@ export default function OrderMenu() {
             <button className="px-4 py-2 bg-blue-500 text-white rounded" onClick={handleRequestBill}>请求账单</button>
           </div>
         </div>
-      </div>
 
-    {myOrders.length > 0 && (
-      <div className="mt-10 p-4 bg-white rounded shadow">
-        <h2 className="text-xl font-semibold mb-2">📜 我的订单</h2>
-        {myOrders.map((o, idx) => (
-          <div key={idx} className="mb-2 border p-2 rounded">
-            <div>订单编号: {o.orderId}</div>
-            <div>时间: {new Date(o.time).toLocaleString()}</div>
-            <div>总价: RM {o.total}</div>
-            <div className="text-sm text-gray-600">
-              餐点:
-              <ul className="list-disc pl-5">
-                {o.items.map((i, iIdx) => (
-                  <li key={iIdx}>
-                    {i.name} - {i.type}{i.packed ? "（打包）" : ""} x {i.qty}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-        ))}
-    )}
+        {/* 我的订单 */}
+        {myOrders.length > 0 && (
+          <div className="mt-10 p-4 bg-white rounded shadow">
+            <h2 className="text-xl font-semibold mb-2">📜 我的订单</h2>
+            {myOrders.map((o, idx) => (
+              <div key={idx} className="mb-2 border p-2 rounded">
+                <div>订单编号: {o.orderId}</div>
+                <div>时间: {new Date(o.time).toLocaleString()}</div>
+                <div>总价: RM {o.total}</div>
+                <div className="text-sm text-gray-600">
+                  餐点:
+                  <ul className="list-disc pl-5">
+                    {o.items.map((i, iIdx) => (
+                      <li key={iIdx}>
+                        {i.name} - {i.type}{i.packed ? "（打包）" : ""} x {i.qty}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            ))}
+        )}
+      </div>
   </div>
 );
 }
