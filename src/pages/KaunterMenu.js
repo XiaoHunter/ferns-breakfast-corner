@@ -137,8 +137,12 @@ const KaunterMenu = () => {
                     <li key={i}>
                       {item.name} x {item.qty} {item.packed ? "（打包）" : ""}
                     </li>
-                  ))}
+                  ))
+                }
                 </ul>
+                {/* Add the status display here */}
+                <p><strong>状态:</strong> {order.status === "pending" ? "待付款" : order.status === "completed" ? "已付款" : "已取消"}</p>
+                
                 {order.status === "pending" ? (
                   <p style={{ color: "orange" }}>待付款</p>
                 ) : order.status === "completed" ? (
