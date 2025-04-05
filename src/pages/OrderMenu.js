@@ -53,9 +53,14 @@ export default function OrderMenu() {
 
           const urlParams = new URLSearchParams(window.location.search);
           const editId = urlParams.get("edit");
-          if (!editId && !editingOrderId) {
-            const last = myOrdersOnly.find(o => o.status === "pending");
-            if (last) setEditingOrderId(last.orderId);
+
+          if (!editId) {
+            const pending = myOrdersOnly.find(o => o.status === "pending");
+            if (pending) {
+              setEditingOrderId(pending.orderId);
+            } else {
+              setEditingOrderId(null);
+            }
           }
         })
         .catch(() => setMyOrders([]));
@@ -64,7 +69,7 @@ export default function OrderMenu() {
     fetchOrders();
     const interval = setInterval(fetchOrders, 5000);
     return () => clearInterval(interval);
-  }, [deviceId, editingOrderId]);
+  }, [deviceId]);
 
   useEffect(() => {
     if (!menu) return;
