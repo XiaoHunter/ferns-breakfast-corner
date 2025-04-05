@@ -139,8 +139,12 @@ const KaunterMenu = () => {
                     </li>
                   ))}
                 </ul>
-                {order.status === "completed" ? (
-                  <p style={{ color: "green" }}>✅ 已付款（{order.payment}）</p>
+                {order.status === "pending" ? (
+                  <p style={{ color: "orange" }}>待付款</p>
+                ) : order.status === "completed" ? (
+                  <p style={{ color: "green" }}>✅ 已付款 ({order.payment})</p>
+                ) : order.status === "cancelled" ? (
+                  <p style={{ color: "red" }}>❌ 已取消</p>
                 ) : (
                   <div>
                     <button onClick={() => handlePaymentWithConfirmation(index, "cash")}>💵 现金付款</button>
