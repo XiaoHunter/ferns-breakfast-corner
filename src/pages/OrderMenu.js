@@ -8,14 +8,13 @@ export default function OrderMenu() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("https://ferns-breakfast-corner.com/items/orders-items")
+    fetch("https://ferns-breakfast-corner.com/items/orders-items.json")
       .then((res) => res.json())
       .then((data) => {
-        const categorized = data.reduce((acc, item) => {
-          if (!acc[item.category]) acc[item.category] = [];
-          acc[item.category].push(item);
-          return acc;
-        }, {});
+        const categorized = {};
+        data.forEach((entry) => {
+          categorized[entry.category] = entry.items;
+        });
         setMenu(categorized);
         setLoading(false);
       });
