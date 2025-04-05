@@ -165,6 +165,7 @@ export default function OrderMenu() {
       const key = `${item.name}-${item.type}`;
       console.log("A1 - " + item.packed);
       console.log("A2 - " + isDrinkCategory);
+      console.log("A3 - " + matched);
       if (item.packed && isDrinkCategory) packedIncluded = true;
 
       const addonTotal = (item.addons || []).reduce((s, a) => s + a.price, 0);
