@@ -100,7 +100,8 @@ export default function OrderMenu() {
   const updateQty = (item, type, delta) => {
     const keyBase = `${item.name}-${type}`;
     const packed = packedStatus[keyBase] || false;
-    const flavor = flavorStatus[keyBase] || (item.category === "云吞面" ? "干" : item.category === "粿条汤" ? "汤" : "");
+    const isNoodleCategory = item.category === "云吞面" || item.category === "粿条汤";
+    const flavor = flavorStatus[keyBase] || (isNoodleCategory ? (item.category === "云吞面" ? "干" : "汤") : "");
     const noodle = noodleStatus[keyBase] || (item.category === "云吞面" ? "Wantan Mee" : item.category === "粿条汤" ? "Koay Teow" : "");
     const addons = addonsStatus[keyBase] || [];
     const flavorPart = item.noodles || item.types ? `-${flavor}` : "";
@@ -146,7 +147,8 @@ export default function OrderMenu() {
   const addToOrder = (item, type, qty) => {
     const keyBase = `${item.name}-${type}`;
     const packed = packedStatus[keyBase] || false;
-    const flavor = flavorStatus[keyBase] || (item.category === "云吞面" ? "干" : item.category === "粿条汤" ? "汤" : "");
+    const isNoodleCategory = item.category === "云吞面" || item.category === "粿条汤";
+    const flavor = flavorStatus[keyBase] || (isNoodleCategory ? (item.category === "云吞面" ? "干" : "汤") : "");
     const noodle = noodleStatus[keyBase] || (item.category === "云吞面" ? "Wantan Mee" : item.category === "粿条汤" ? "Koay Teow" : "");
     const addons = addonsStatus[keyBase] || [];
     const flavorPart = item.noodles || item.types ? `-${flavor}` : "";
@@ -214,12 +216,10 @@ export default function OrderMenu() {
 
       const noodleOptions = matched?.noodles || []; // safe fallback
 
-      const basePrice =
-        item.type === "cold"
-          ? matched.coldPrice
-          : item.type === "hot"
-          ? matched.hotPrice
-          : matched.price || 0;
+      const basePrice = 
+        type === "cold" ? Number(matched.coldPrice ?? matched.price ?? 0) :
+        type === "hot" ? Number(matched.hotPrice ?? matched.price ?? 0) :
+        Number(matched.price ?? 0);
 
       const isDrinkCategory = matched.category && matched.category.startsWith("饮料");
       const packedFee = isDrinkCategory && item.packed ? 0.2 : 0;
@@ -312,7 +312,8 @@ export default function OrderMenu() {
                 return types.map((type) => {
                   const keyBase = `${item.name}-${type}`;
                   const packed = packedStatus[keyBase] || false;
-                  const flavor = flavorStatus[keyBase] || (item.category === "云吞面" ? "干" : item.category === "粿条汤" ? "汤" : "");
+                  const isNoodleCategory = item.category === "云吞面" || item.category === "粿条汤";
+                  const flavor = flavorStatus[keyBase] || (isNoodleCategory ? (item.category === "云吞面" ? "干" : "汤") : "");
                   const noodle = noodleStatus[keyBase] || (item.category === "云吞面" ? "Wantan Mee" : item.category === "粿条汤" ? "Koay Teow" : "");
                   const addons = addonsStatus[keyBase] || [];
                   const flavorPart = item.noodles || item.types ? `-${flavor}` : "";
@@ -412,7 +413,7 @@ export default function OrderMenu() {
                         <div className="mt-2">
                           <label className="block">选择面粉:</label>
                           <select
-                            value={order[key]?.noodle ?? noodleStatus[key] ?? ""}
+                            value={noodleStatus[key] ?? ""}
                             onChange={(e) => handleNoodleChange(item, type, e.target.value)}
                           >
                             <option value="">请选择面粉</option>
