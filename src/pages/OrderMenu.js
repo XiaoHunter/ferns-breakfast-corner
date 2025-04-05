@@ -153,7 +153,10 @@ export default function OrderMenu() {
     let sum = 0;
     let packedIncluded = false;
     for (const item of Object.values(order)) {
-      const matched = Object.values(menu).flat().find((d) => d.name === item.name);
+      const flatMenu = Object.entries(menu).flatMap(([cat, items]) =>
+        items.map((item) => ({ ...item, category: cat }))
+      );
+      const matched = flatMenu.find((d) => d.name === item.name);
       if (!matched) continue;
 
       const basePrice = 
