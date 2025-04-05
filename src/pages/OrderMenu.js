@@ -90,8 +90,6 @@ export default function OrderMenu() {
         }
       });
     });
-
-    setSelectionOptions(updated);
   }, [menu]);
 
   const updateQty = (item, type, delta) => {
