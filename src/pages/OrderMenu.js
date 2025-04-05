@@ -103,7 +103,7 @@ export default function OrderMenu() {
           name: item.name,
           type,
           packed: packed,
-          addons: selectedAddons,
+          addons,
           qty,
           flavor,
           noodle
