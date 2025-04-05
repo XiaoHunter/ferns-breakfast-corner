@@ -54,7 +54,7 @@ export default function OrderMenu() {
           const urlParams = new URLSearchParams(window.location.search);
           const editId = urlParams.get("edit");
           if (!editId && !editingOrderId) {
-            const last = myOrdersOnly.length > 0 ? myOrdersOnly[0] : null;
+            const last = myOrdersOnly.find(o => o.status === "pending");
             if (last) setEditingOrderId(last.orderId);
           }
         })
@@ -215,6 +215,8 @@ export default function OrderMenu() {
 
     if (editingOrderId) {
       data.orderId = editingOrderId;
+    } else {
+      clearOrder(); // ✅ 只在新增订单时清空
     }
 
     fetch("https://ferns-breakfast-corner.com/api/send-order.php", {
