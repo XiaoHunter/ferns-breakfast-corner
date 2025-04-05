@@ -262,8 +262,9 @@ export default function OrderMenu() {
                 </div>
               </div>
             ))}
+          </div>
         )}
-      </div>
-  </div>
-);
+      </div> {/* Content 结束 */}
+    </div>   {/* 主 container 结束 */}
+  );
 }
