@@ -126,11 +126,44 @@ export default function OrderMenu() {
   };
 
   const togglePacked = (item, type) => {
-    const key = `${item.name}-${type}`;
-    const newPacked = !packedStatus[key];
-    setPackedStatus((prev) => ({ ...prev, [key]: newPacked }));
-    updateQty(item, type, 0); // 刷新新的组合 key
+    const keyBase = `${item.name}-${type}`;
+    const newPacked = !packedStatus[keyBase];
+
+    setPackedStatus((prev) => {
+      const updated = { ...prev, [keyBase]: newPacked };
+      const isNoodleCategory = item.category === "云吞面" || item.category === "粿条汤";
+      const flavor = flavorStatus[keyBase] || (isNoodleCategory ? (item.category === "云吞面" ? "干" : "汤") : "");
+      const noodle = noodleStatus[keyBase] ?? (item.category === "云吞面" ? "Wantan Mee" : item.category === "粿条汤" ? "Koay Teow" : "");
+      const addons = addonsStatus[keyBase] || [];
+
+      const flavorPart = item.noodles || item.types ? `-${flavor}` : "";
+      const noodlePart = item.noodles ? `-${noodle}` : "";
+      const packedPart = newPacked ? "-packed" : "";
+      const addonPart = addons.length ? "-addons" : "";
+
+      const key = `${item.name}-${type}${flavorPart}${noodlePart}${packedPart}${addonPart}`;
+
+      setOrder((prev) => {
+        const qty = prev[key]?.qty || 0;
+        if (qty <= 0) return prev;
+        return {
+          ...prev,
+          [key]: {
+            name: item.name,
+            type,
+            packed: newPacked,
+            addons,
+            qty,
+            flavor,
+            noodle
+          }
+        };
+      });
+
+      return updated;
+    });
   };
+
 
   const toggleAddon = (item, type, addon) => {
     const key = `${item.name}-${type}`;
