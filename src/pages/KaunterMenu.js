@@ -53,31 +53,44 @@ const KaunterMenu = () => {
 
   const printReceipt = (order) => {
     const html = `
-    <div style="font-family: monospace; width: 58mm; font-size: 12px;">
+    <html><head><title>Receipt</title>
+      <style>
+        @page { size: 58mm auto; margin: 0; }
+        body { font-family: monospace; width: 58mm; margin: 0; font-size: 12px; }
+        h2, p, li { margin: 0; padding: 2px 0; }
+        ul { padding-left: 0; list-style: none; }
+        hr { margin: 6px 0; border: none; border-top: 1px dashed #000; }
+      </style>
+    </head><body>
       <h2 style="text-align: center;">FERNS BREAKFAST CORNER</h2>
       <p>日期: ${formatMalaysiaTime(order.time)}</p>
       <p>订单: ${order.orderId}</p>
       <p>桌号: ${order.table || order.deviceId}</p>
-      <hr style="border-top: 1px dashed #000;" />
+      <hr/>
       ${order.items
         .filter(item => item.qty > 0)
         .map(item => `<p>${item.name} x ${item.qty}${item.packed ? '（打包）' : ''}</p>`)
         .join('')}
-      <hr style="border-top: 1px dashed #000;" />
+      <hr/>
       <p><strong>总计: RM ${order.total.toFixed(2)}</strong></p>
       ${order.payment ? `<p>付款方式: ${order.payment}</p>` : ""}
       <p style="text-align: center;">谢谢惠顾！</p>
-    </div>
+    </body></html>
     `;
 
-    // ✅ 调用 iMin 内建 JS 打印功能
-    if (typeof iminjs !== "undefined" && iminjs.printHtml) {
-      iminjs.printHtml(html, function (res) {
-        console.log("🖨️ 打印结果：", res);
+    if (typeof iminjs !== "undefined" && typeof iminjs.printHtml === "function") {
+      // ✅ iMin 原生打印（最优体验）
+      iminjs.printHtml(html, (res) => {
+        console.log("🖨️ iMin 打印完成", res);
       });
     } else {
-      alert("❌ 当前设备不支持直接打印 (iminjs.printHtml)");
-      console.log("打印 HTML 内容：", html); // 可手动复制调试
+      // 🔄 fallback: 系统打印预览
+      const w = window.open("", "PRINT", "height=600,width=400");
+      w.document.write(html);
+      w.document.close();
+      w.focus();
+      w.print();
+      w.close();
     }
   };
 
