@@ -151,6 +151,7 @@ export default function OrderMenu() {
 
   const getTotal = () => {
     let sum = 0;
+    let packedIncluded = false;
     for (const item of Object.values(order)) {
       const matched = Object.values(menu).flat().find((d) => d.name === item.name);
       if (!matched) continue;
@@ -162,11 +163,11 @@ export default function OrderMenu() {
 
       const isDrinkCategory = matched.category && matched.category.startsWith("饮料");
       const key = `${item.name}-${item.type}`;
-      console.log(item.packed);
-      const packedFee = isDrinkCategory && item.packed ? 0.2 : 0;
+      if (item.packed && isDrinkCategory) packedIncluded = true;
 
       const addonTotal = (item.addons || []).reduce((s, a) => s + a.price, 0);
-      sum += item.qty * (basePrice + packedFee + addonTotal);
+      sum += item.qty * (basePrice + addonTotal);
+      if (packedIncluded) sum += 0.2;
     }
     return sum.toFixed(2);
   };
