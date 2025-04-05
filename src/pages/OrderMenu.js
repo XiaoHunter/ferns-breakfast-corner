@@ -165,7 +165,10 @@ export default function OrderMenu() {
         Number(matched.price ?? 0);
 
       const isDrinkCategory = matched.category && matched.category.startsWith("饮料");
-      const packedFee = matched.category === "饮料" && item.packed ? 0.2 : 0;
+      const key = `${item.name}-${item.type}`;
+      const packedFee = 0;
+      if (item.packed && isDrinkCategory) packedIncluded = true;
+      if (packedIncluded) packedFee = 0.2;
 
       const addonTotal = (item.addons || []).reduce((s, a) => s + a.price, 0);
       sum += item.qty * (basePrice + packedFee + addonTotal);
