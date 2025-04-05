@@ -4,6 +4,8 @@ const KaunterMenu = () => {
   const [token, setToken] = useState(null);
   const [input, setInput] = useState("");
   const [orders, setOrders] = useState([]);
+  const [editingTable, setEditingTable] = useState(null);
+  const [tableInputs, setTableInputs] = useState({});
 
   const login = () => {
     fetch("https://ferns-breakfast-corner.com/api/kaunter-login.php", {
@@ -49,6 +51,8 @@ const KaunterMenu = () => {
   };
 
   const markAsPaid = (index, method) => {
+    const confirmText = method === "cash" ? "现金付款" : "电子钱包付款";
+    if (!window.confirm(`确认要进行${confirmText}？`)) return;
     const updatedOrder = { ...orders[index], status: "completed", payment: method };
     updateSingleOrder(updatedOrder);
   };
@@ -83,9 +87,20 @@ const KaunterMenu = () => {
     updateSingleOrder(updatedOrder);
   };
 
-  const updateTable = (index, newTable) => {
-    const updatedOrder = { ...orders[index], table: newTable };
+  const startEditingTable = (orderId, current) => {
+    setEditingTable(orderId);
+    setTableInputs((prev) => ({ ...prev, [orderId]: current || "" }));
+  };
+
+  const confirmTableEdit = (index, orderId) => {
+    const updatedOrder = { ...orders[index], table: tableInputs[orderId] };
     updateSingleOrder(updatedOrder);
+    setEditingTable(null);
+  };
+
+  const cancelTableEdit = (orderId) => {
+    setEditingTable(null);
+    setTableInputs((prev) => ({ ...prev, [orderId]: "" }));
   };
 
   if (!token) {
@@ -110,31 +125,33 @@ const KaunterMenu = () => {
       <h1>🧾 Kaunter Order List</h1>
       {orders.map((order, index) => (
         <div key={order.orderId} style={{ border: "1px solid #ccc", marginBottom: 20, padding: 10 }}>
-          <p>
-            <strong>订单编号:</strong> {order.orderId}
-          </p>
-          <p>
-            <strong>Table:</strong> {order.table || order.deviceId}{" "}
-            <input
-              type="text"
-              placeholder="修改桌号"
-              onBlur={(e) => updateTable(index, e.target.value)}
-              className="border px-2 ml-2"
-            />
-          </p>
-          <p>
-            <strong>时间:</strong> {order.time}
-          </p>
-          <p>
-            <strong>总价:</strong> RM {order.total.toFixed(2)}
-          </p>
-          <p>
-            <strong>餐点:</strong>
-          </p>
+          <p><strong>订单编号:</strong> {order.orderId}</p>
+          <p><strong>Table:</strong> {
+            editingTable === order.orderId ? (
+              <>
+                <input
+                  type="text"
+                  value={tableInputs[order.orderId] || ""}
+                  onChange={(e) => setTableInputs((prev) => ({ ...prev, [order.orderId]: e.target.value }))}
+                  className="border px-2 ml-2"
+                />
+                <button onClick={() => confirmTableEdit(index, order.orderId)} className="ml-1 text-green-600">✅</button>
+                <button onClick={() => cancelTableEdit(order.orderId)} className="ml-1 text-red-600">❌</button>
+              </>
+            ) : (
+              <>
+                {order.table || order.deviceId}
+                <button onClick={() => startEditingTable(order.orderId, order.table)} className="ml-2 text-blue-600">✏️</button>
+              </>
+            )
+          }</p>
+          <p><strong>时间:</strong> {order.time}</p>
+          <p><strong>总价:</strong> RM {order.total.toFixed(2)}</p>
+          <p><strong>餐点:</strong></p>
           <ul>
             {order.items.map((item, i) => (
               <li key={i}>
-                {item.name} x {item.qty} {item.packed ? "（打包）" : ""}{" "}
+                {item.name} x {item.qty} {item.packed ? "（打包）" : ""}
                 {order.status !== "completed" && (
                   <button
                     onClick={() => removeItem(index, i)}
@@ -153,7 +170,7 @@ const KaunterMenu = () => {
           ) : (
             <div>
               <button onClick={() => markAsPaid(index, "cash")}>💵 现金付款</button>
-              <button onClick={() => markAsPaid(index, "ewallet")} style={{ marginLeft: 10 }}>
+              <button onClick={() => markAsPaid(index, "ewallet") } style={{ marginLeft: 10 }}>
                 📱 电子钱包付款
               </button>
               <button
