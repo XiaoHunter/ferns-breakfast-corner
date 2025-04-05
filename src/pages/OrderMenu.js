@@ -99,11 +99,12 @@ export default function OrderMenu() {
 
   const updateQty = (item, type, delta) => {
     const keyBase = `${item.name}-${type}`;
-    const packed = packedStatus[keyBase] || false;
-    const addons = addonsStatus[keyBase] || [];
-    const flavor = flavorStatus[keyBase] ?? "dry";
-    const noodle = noodleStatus[keyBase] ?? "";
-    const key = `${item.name}-${type}-${flavor}-${noodle}${packed ? "-packed" : ""}${addons.length ? "-addons" : ""}`;
+    const flavorPart = item.noodles || item.types ? `-${flavor}` : "";
+    const noodlePart = item.noodles ? `-${noodle}` : "";
+    const packedPart = packed ? "-packed" : "";
+    const addonPart = addons.length ? "-addons" : "";
+
+    const key = `${item.name}-${type}${flavorPart}${noodlePart}${packedPart}${addonPart}`;
 
     setOrder((prev) => {
       const qty = (prev[key]?.qty || 0) + delta;
@@ -139,11 +140,12 @@ export default function OrderMenu() {
   };
 
   const addToOrder = (item, type, qty) => {
-    const flavor = flavorStatus[key] || ""; // 加入口味
-    const noodle = noodleStatus[key] || ""; // 加入面粉
-    const packed = packedStatus[key] || false;
-    const addons = addonsStatus[key] || [];
-    const key = `${item.name}-${type}-${flavor}-${noodle}${packed ? "-packed" : ""}${addons.length ? "-addons" : ""}`;
+    const flavorPart = item.noodles || item.types ? `-${flavor}` : "";
+    const noodlePart = item.noodles ? `-${noodle}` : "";
+    const packedPart = packed ? "-packed" : "";
+    const addonPart = addons.length ? "-addons" : "";
+
+    const key = `${item.name}-${type}${flavorPart}${noodlePart}${packedPart}${addonPart}`;
 
     const updatedItem = {
       name: item.name,
@@ -295,15 +297,17 @@ export default function OrderMenu() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {menu[selectedCategory].flatMap((item) => {
                 const isDrink = selectedCategory.startsWith("饮料");
-                const types = isDrink ? ["hot", "cold"] : ["standard"];
+                const selectedType = typeStatus[item.name] || (isDrink ? "hot" : "standard");
+                const types = [selectedType];
 
                 return types.map((type) => {
                   const key = `${item.name}-${type}`;
-                  const packed = packedStatus[key] || false;
-                  const addons = addonsStatus[key] || [];
-                  const flavor = flavorStatus[key] || "dry";
-                  const noodle = noodleStatus[key] || "";
-                  const orderKey = `${item.name}-${type}-${flavor}-${noodle}${packed ? "-packed" : ""}${addons.length ? "-addons" : ""}`;
+                  const flavorPart = item.noodles || item.types ? `-${flavor}` : "";
+                  const noodlePart = item.noodles ? `-${noodle}` : "";
+                  const packedPart = packed ? "-packed" : "";
+                  const addonPart = addons.length ? "-addons" : "";
+
+                  const orderKey = `${item.name}-${type}${flavorPart}${noodlePart}${packedPart}${addonPart}`;
                   const ordered = order[orderKey];
                   const unitPrice = isDrink
                     ? (type === "hot"
