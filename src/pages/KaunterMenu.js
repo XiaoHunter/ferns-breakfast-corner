@@ -24,13 +24,15 @@ const KaunterMenu = () => {
   }, []);
 
   const flatMenu = useMemo(() => {
-    if (!menu || typeof menu !== 'object') {
-      console.warn("⚠️ menu is invalid", menu);
+    if (!Array.isArray(menu)) {
+      console.warn("⚠️ menu is not array", menu);
       return [];
     }
-    const result = Object.entries(menu).flatMap(([cat, items]) =>
-      items.map(i => ({ ...i, category: cat }))
+
+    const result = menu.flatMap(({ category, items }) =>
+      items.map(i => ({ ...i, category }))
     );
+
     console.log("📋 flatMenu:", result);
     return result;
   }, [menu]);
