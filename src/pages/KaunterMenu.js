@@ -17,7 +17,10 @@ const KaunterMenu = () => {
     fetch("https://ferns-breakfast-corner.com/menu/orders-items.json")
       .then(res => res.json())
       .then(setMenu)
-      .catch(() => setMenu([])); // 避免崩溃
+      .catch(err => {
+        console.error("Failed to load menu", err);
+        setMenu([]);
+      });
   }, []);
 
   const printOrder = (order) => {
@@ -43,8 +46,14 @@ const KaunterMenu = () => {
       const comboTotal = ((basePrice + addonTotal + packedFee) * item.qty).toFixed(2);
 
       return `
-        <tr><td colspan="2">🍹 ${item.name} - ${type}${packed}${addons}</td></tr>
-        <tr><td>x ${item.qty}</td><td style="text-align:right">RM ${comboTotal}</td></tr>
+        <tr>
+          <td>
+            🍹 ${item.name} - ${type}${packed}${addons} x ${item.qty}
+          </td>
+          <td style="text-align:right">
+            RM ${comboTotal}
+          </td>
+        </tr>
       `;
     }).join("");
 
@@ -84,6 +93,7 @@ const KaunterMenu = () => {
           if (!latest.printRef && latest.orderId > lastOrderIdRef.current) {
             lastOrderIdRef.current = latest.orderId;
             setTimeout(() => {
+              if (!menu || !menu.length) return;
               printOrder(latest);
             }, 5000);
             fetch("https://ferns-breakfast-corner.com/api/mark-order-printed.php", {
