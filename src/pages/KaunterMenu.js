@@ -52,32 +52,63 @@ const KaunterMenu = () => {
   };
 
   const printReceipt = (order) => {
+    const formatLine = (name, qty, price) => {
+      const nameStr = name.length > 18 ? name.slice(0, 18) : name.padEnd(18, " ");
+      const qtyStr = qty.toString().padStart(3, " ");
+      const priceStr = price.toFixed(2).padStart(7, " ");
+      return `${nameStr} ${qtyStr} ${priceStr}`;
+    };
+
+    const lines = order.items
+      .filter(item => item.qty > 0)
+      .map(item => {
+        let name = item.name;
+        if (item.packed) name += " (Packed)";
+        if (item.flavor) name += ` (${item.flavor})`;
+        if (item.noodle) name += ` (${item.noodle})`;
+        return formatLine(name, item.qty, item.qty * item.unitPrice);
+      });
+
     const html = `
-    <div style="font-family: monospace; width: 58mm; font-size: 12px;">
-      <h2 style="text-align: center;">FERNS BREAKFAST CORNER</h2>
-      <p>日期: ${formatMalaysiaTime(order.time)}</p>
-      <p>订单: ${order.orderId}</p>
-      <p>桌号: ${order.table || order.deviceId}</p>
-      <hr style="border-top: 1px dashed #000;" />
-      ${order.items
-        .filter(item => item.qty > 0)
-        .map(item => `<p>${item.name} x ${item.qty}${item.packed ? '（打包）' : ''}</p>`)
-        .join('')}
-      <hr style="border-top: 1px dashed #000;" />
-      <p><strong>总计: RM ${order.total.toFixed(2)}</strong></p>
-      ${order.payment ? `<p>付款方式: ${order.payment}</p>` : ""}
-      <p style="text-align: center;">谢谢惠顾！</p>
-    </div>
+    <html><head><title>Receipt</title>
+    <style>
+      @page { size: 58mm auto; margin: 0; }
+      body {
+        font-family: monospace;
+        width: 58mm;
+        margin: 0;
+        font-size: 12px;
+      }
+      h2, p { text-align: center; margin: 4px 0; }
+      pre { margin: 0; }
+      hr { border: none; border-top: 1px dashed #000; margin: 6px 0; }
+    </style>
+    </head><body>
+      <h2>FERNS BREAKFAST CORNER</h2>
+      <p>Order No: ${order.orderId}</p>
+      <p>Table: ${order.table || order.deviceId}</p>
+      <p>Date: ${formatMalaysiaTime(order.time)}</p>
+      <hr/>
+      <pre>Item               Qty  Price</pre>
+      <hr/>
+      <pre>${lines.join("\n")}</pre>
+      <hr/>
+      <pre>Subtotal:          RM ${order.total.toFixed(2).padStart(5, " ")}</pre>
+      ${order.payment ? `<pre>Payment:           ${order.payment}</pre>` : ""}
+      <hr/>
+      <p>Thank You & Come Again!</p>
+    </body></html>
     `;
 
-    // ✅ 调用 iMin 内建 JS 打印功能
-    if (typeof iminjs !== "undefined" && iminjs.printHtml) {
-      iminjs.printHtml(html, function (res) {
-        console.log("🖨️ 打印结果：", res);
-      });
+    if (typeof iminjs !== "undefined" && typeof iminjs.printHtml === "function") {
+      iminjs.printHtml(html, (res) => console.log("✅ iMin print done", res));
     } else {
-      alert("❌ 当前设备不支持直接打印 (iminjs.printHtml)");
-      console.log("打印 HTML 内容：", html); // 可手动复制调试
+      const w = window.open("", "PRINT", "height=600,width=400");
+      w.document.write(html);
+      w.document.close();
+      w.focus();
+      w.print();
+      w.close();
     }
   };
 
