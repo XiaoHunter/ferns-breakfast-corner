@@ -1,6 +1,8 @@
 import React, { useEffect, useState, useRef, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 
 export default function OrderMenu() {
+  const navigate = useNavigate();
   const [menu, setMenu] = useState({});
   const [selectedCategory, setSelectedCategory] = useState("");
   const [order, setOrder] = useState({});
@@ -163,6 +165,7 @@ export default function OrderMenu() {
         if (res.status === "success") {
           alert("✅ 已成功送出订单！");
           setOrder({});
+          navigate("/"); // 回到主页
         } else {
           alert("❌ 提交失败");
         }
