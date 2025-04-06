@@ -35,7 +35,7 @@ const KaunterMenu = () => {
     if (!printWindow) return;
 
     const time = formatMalaysiaTime(order.time);
-    const total = order.total?.toFixed(2) || "0.00";
+    const total = Number(order.total || 0).toFixed(2);
     const items = order.items.map((item) => {
       const type = item.type === "hot" ? "Hot" : item.type === "cold" ? "Cold" : "";
       const packed = item.packed ? "（Takeaway）" : "";
@@ -102,6 +102,8 @@ const KaunterMenu = () => {
           const latest = [...data].sort((a, b) => b.orderId - a.orderId)[0];
           if (!latest.printRef && latest.orderId > lastOrderIdRef.current) {
             lastOrderIdRef.current = latest.orderId;
+            console.log("👀 正在打印订单", latest);
+            console.log("📦 menu 是", menu);
             setTimeout(() => {
               if (!menu || !menu.length) return;
               printOrder(latest);
@@ -113,7 +115,10 @@ const KaunterMenu = () => {
                 date: selectedDate,
                 orderId: latest.orderId
               })
-            });
+            })
+            .then(res => res.json())
+            .then(console.log) // ✅ 成功或错误都看得见
+            .catch(console.error); // 🚨 网络失败就会显示出来
           }
           setOrders(data.reverse());
         })
