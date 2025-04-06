@@ -5,6 +5,9 @@ export default function OrderMenu() {
   const [selectedCategory, setSelectedCategory] = useState("");
   const [order, setOrder] = useState({});
   const [myOrders, setMyOrders] = useState([]);
+  const [typeStatus, setTypeStatus] = useState({});
+  const [packedStatus, setPackedStatus] = useState({});
+  const [addonsStatus, setAddonsStatus] = useState({});
   const [loading, setLoading] = useState(true);
   const [selectingTable, setSelectingTable] = useState(true);
   const [selectedTable, setSelectedTable] = useState("");
@@ -44,58 +47,63 @@ export default function OrderMenu() {
       });
   }, []);
 
-  const updateOptions = (item, newType = null, newPacked = null) => {
-    const type = newType ?? item.type ?? "hot";
-    const packed = newPacked ?? item.packed ?? false;
-    const key = `${item.name}-${type}-${packed}`;
-
-    setOrder((prev) => {
-      const updated = prev[key] || { name: item.name, qty: 0 };
-
-      if (!updated.qty) {
-        // 不自动加 qty，只是更新类型
-        updated.qty = 0;
-      }
-
-      if (newType !== null) updated.type = newType;
-      if (newPacked !== null) updated.packed = newPacked;
-
-      return { 
-        ...prev, 
-        [key]: { 
-          ...updated, 
-          type, 
-          packed,
-        },
-      };
-    });
+  const updateType = (itemName, newType) => {
+    setTypeStatus((prev) => ({ ...prev, [itemName]: newType }));
   };
 
-  const updateQty = (item, delta = 1) => {
-    const type = item.type || "hot"; // fallback
-    const packed = item.packed || false;
-    const key = `${item.name}-${type}-${packed}`;
+  const updateQty = (item, type, delta) => {
+    const keyBase = `${item.name}-${type}`;
+    const packed = packedStatus[keyBase] || false;
+    const addons = addonsStatus[keyBase] || [];
+    const packedPart = packed ? "-packed" : "";
+    const addonPart = addons.length ? "-addons" : "";
+
+    const key = `${item.name}-${type}${packedPart}${addonPart}`;
 
     setOrder((prev) => {
-      const existing = prev[key] || { name: item.name, type, packed, qty: 0 };
-      const qty = (existing.qty || 0) + delta;
-
+      const qty = (prev[key]?.qty || 0) + delta;
       if (qty <= 0) {
         const { [key]: _, ...rest } = prev;
         return rest;
       }
-
+      const isDrink = item.category?.startsWith("饮料");
       return {
         ...prev,
         [key]: {
-          ...existing,
           name: item.name,
+          type,
+          packed,
+          addons,
           qty,
-          type: existing.type || "hot",
-          packed: existing.packed || false,
-        },
+        }
       };
     });
+  };
+
+  const updateOption = (item, type, value) => {
+    const key = `${item.name}-${item.type}`;
+    const current = order[key] || { qty: 0 };
+    setOrder({
+      ...order,
+      [key]: {
+        ...current,
+        [type]: value,
+      },
+    });
+  };
+
+  const togglePacked = (item, type) => {
+    const key = `${item.name}-${type}`;
+    const newStatus = !packedStatus[key];
+    setPackedStatus({ ...packedStatus, [key]: newStatus });
+  };
+
+  const toggleAddon = (item, type, addon) => {
+    const key = `${item.name}-${type}`;
+    const current = addonsStatus[key] || [];
+    const exists = current.find((a) => a.name === addon.name);
+    const updated = exists ? current.filter((a) => a.name !== addon.name) : [...current, addon];
+    setAddonsStatus((prev) => ({ ...prev, [key]: updated }));
   };
 
   const getTotal = () => {
@@ -104,22 +112,21 @@ export default function OrderMenu() {
       items.map((item) => ({ ...item, category: cat }))
     );
 
-    for (const [name, combos] of Object.entries(order)) {
-      const matched = flatMenu.find((d) => d.name === name);
+    for (const item of Object.values(order)) {
+      const matched = flatMenu.find((d) => d.name === item.name);
       if (!matched) continue;
 
-      for (const combo of combos) {
-        const basePrice =
-          combo.type === "cold"
-            ? Number(matched.coldPrice ?? matched.price ?? 0)
-            : combo.type === "hot"
-            ? Number(matched.hotPrice ?? matched.price ?? 0)
-            : Number(matched.price ?? 0);
+      const basePrice = 
+        item.type === "cold" ? Number(matched.coldPrice ?? matched.price ?? 0) :
+        item.type === "hot" ? Number(matched.hotPrice ?? matched.price ?? 0) :
+        Number(matched.price ?? 0);
 
-        const packedFee = matched.category?.startsWith("饮料") && combo.packed ? 0.2 : 0;
-        const addonTotal = (combo.addons || []).reduce((s, a) => s + a.price, 0);
-        sum += combo.qty * (basePrice + packedFee + addonTotal);
-      }
+      const isDrinkCategory = matched.category && matched.category.startsWith("饮料");
+      const addonTotal = (item.addons || []).reduce((s, a) => s + a.price, 0);
+
+      const packedFee = isDrinkCategory && item.packed ? 0.2 : 0;
+
+      sum += item.qty * (basePrice + addonTotal + packedFee);
     }
 
     return sum.toFixed(2);
@@ -210,83 +217,103 @@ export default function OrderMenu() {
 
       {/* Content */}
       <div className="flex-1 p-4 bg-yellow-50">
-        <h1 className="text-2xl font-bold mb-4">🧋 Order Menu - Table {tableNo}</h1>
+        <h1 className="text-2xl font-bold mb-4">🧋 Order Menu (Table {tableNo})</h1>
         {selectedCategory && (
           <div className="mb-8">
             <h2 className="text-xl font-bold mb-2">📂 {selectedCategory}</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {menu[selectedCategory].map((item) => {
+              {menu[selectedCategory].flatMap((item) => {
                 const isDrink = selectedCategory.startsWith("饮料");
-                const selectedType = "hot";
-                const tempKey = `${item.name}-${selectedType}-false`;
-                const ordered = order[tempKey] || {};
-                const packed = ordered.packed ?? false;
-                const key = `${item.name}-${selectedType}-${packed}`;
-                const hotPrice = Number(item.hotPrice ?? item.price ?? 0);
-                const coldPrice = Number(item.coldPrice ?? item.price ?? 0);
-                const basePrice = selectedType === "cold" ? coldPrice : hotPrice;
-                const packedFee = isDrink && ordered.packed ? 0.2 : 0;
-                const totalPrice = basePrice + packedFee;
+                const selectedType = typeStatus[item.name] || (isDrink ? "hot" : "standard");
+                const types = [selectedType];
 
-                return (
-                  <div key={item.name} className="bg-white p-4 rounded shadow">
-                    <h2 className="font-semibold text-lg">
-                      {item.chineseName} {item.name}
-                    </h2>
+                return types.map((type) => {
+                  const keyBase = `${item.name}-${type}`;
+                  const packed = packedStatus[keyBase] || false;
+                  const addons = addonsStatus[keyBase] || [];
+                  const packedPart = packed ? "-packed" : "";
+                  const addonPart = addons.length ? "-addons" : "";
 
-                    <p>
-                      RM {totalPrice.toFixed(2)}{" "}
-                      {isDrink && (
-                        <span className="text-sm text-gray-500">
-                          ({selectedType === "hot" ? "热" : "冷"}{ordered.packed ? " + 打包" : ""})
-                        </span>
+                  const key = `${item.name}-${type}${packedPart}${addonPart}`;
+                  const ordered = order[key];
+                  const unitPrice = isDrink
+                    ? (type === "hot"
+                        ? Number(item.hotPrice || item.price || 0)
+                        : Number(item.coldPrice || item.price || 0))
+                    : Number(item.price || 0);
+                  const addonTotal = addons.reduce((sum, a) => sum + a.price, 0);
+                  const price = unitPrice + (isDrink && packed ? 0.2 : 0) + addonTotal;
+
+                  return (
+                    <div key={key} className="bg-white p-4 rounded shadow">
+                      <h2 className="font-semibold text-lg">
+                        {item.chineseName} {item.name}
+                      </h2>
+                      <p>RM {price.toFixed(2)}</p>
+                      <label className="block mt-1">
+                        <input
+                          type="checkbox"
+                          checked={packed}
+                          onChange={() => togglePacked(item, type)}
+                        /> 打包 (Takeaway) {isDrink ? " (+RM0.20)" : ""}
+                      </label>
+                      {item.addons?.length > 0 && (
+                        <div className="mt-1">
+                          {item.addons.map((addon) => (
+                            <label key={addon.name} className="block text-sm">
+                              <input
+                                type="checkbox"
+                                checked={addons.some((a) => a.name === addon.name)}
+                                onChange={() => toggleAddon(item, type, addon)}
+                              /> {addon.name} (+RM{addon.price.toFixed(2)})
+                            </label>
+                          ))}
+                        </div>
                       )}
-                    </p>
 
-                    {/* 饮料类型选择 */}
-                    {isDrink && (
-                      <div className="mt-2 flex flex-wrap gap-2 text-sm items-center">
+                      {/* 饮料类型选择 */}
+                      {isDrink && (
+                        <div className="mt-1">
+                          <label>
+                            <input
+                              type="radio"
+                              name={`type-${item.name}`}
+                              value="hot"
+                              checked={type === "hot"}
+                              onChange={() => updateType(item.name, "hot")}
+                            /> 热 (Hot)
+                          </label>
+                          <label className="ml-2">
+                            <input
+                              type="radio"
+                              name={`type-${item.name}`}
+                              value="cold"
+                              checked={type === "cold"}
+                              onChange={() => updateType(item.name, "cold")}
+                            /> 冷 (Cold)
+                          </label>
+                        </div>
+                      )}
+
+                      {/* 数量控制 */}
+                      <div className="flex gap-2 mt-2 items-center">
                         <button
-                          onClick={() => updateOptions({ ...item, type: "hot", packed: ordered.packed })}
-                          className={`px-2 py-1 rounded border ${selectedType === "hot" ? "bg-yellow-300" : "bg-white"}`}
+                          className="px-3 py-1 bg-gray-300 rounded"
+                          onClick={() => updateQty(item, -1)}
                         >
-                          热 (Hot)
+                          ➖
                         </button>
+                        <span>{ordered.qty || 0}</span>
                         <button
-                          onClick={() => updateOptions({ ...item, type: "cold", packed: ordered.packed })}
-                          className={`px-2 py-1 rounded border ${selectedType === "cold" ? "bg-yellow-300" : "bg-white"}`}
+                          className="px-3 py-1 bg-green-400 rounded"
+                          onClick={() => updateQty(item, 1)}
                         >
-                          冷 (Cold)
+                          ➕
                         </button>
-                        <label className="flex items-center space-x-1">
-                          <input
-                            type="checkbox"
-                            checked={!!ordered.packed}
-                            onChange={(e) => updateOptions({ ...item, type: selectedType, packed: e.target.checked })}
-                          />
-                          <span>打包 (Takeaway)</span>
-                        </label>
                       </div>
-                    )}
-
-                    {/* 数量控制 */}
-                    <div className="flex gap-2 mt-2 items-center">
-                      <button
-                        className="px-3 py-1 bg-gray-300 rounded"
-                        onClick={() => updateQty(item, -1)}
-                      >
-                        ➖
-                      </button>
-                      <span>{ordered.qty || 0}</span>
-                      <button
-                        className="px-3 py-1 bg-green-400 rounded"
-                        onClick={() => updateQty(item, 1)}
-                      >
-                        ➕
-                      </button>
                     </div>
-                  </div>
-                );
+                  );
+                });
               })}
             </div>
           </div>
@@ -296,11 +323,11 @@ export default function OrderMenu() {
         <div className="mt-10 p-4 bg-white rounded shadow">
           <h2 className="text-xl font-semibold mb-2">🧾 Current Order</h2>
           <ul className="mb-2">
-            {Object.entries(order).map(([key, item]) => (
-              <li key={key}>
-                {item.name}
-                {item.type === "cold" ? "（冷）" : item.type === "hot" ? "（热）" : ""}
-                {item.packed ? " + 打包" : ""} x {item.qty}
+            {Object.values(order).map((item, idx) => (
+              <li key={idx}>
+                {item.name} - {item.type?.toUpperCase() ?? "STANDARD"}
+                {item.packed ? " + Takeaway" : ""} x {item.qty}
+                {item.addons?.length > 0 && <> + {item.addons.map((a) => a.name).join(", ")}</>} x {item.qty}
               </li>
             ))}
           </ul>
