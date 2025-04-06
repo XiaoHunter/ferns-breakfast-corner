@@ -16,7 +16,7 @@ const KaunterMenu = () => {
   useEffect(() => {
     fetch("https://ferns-breakfast-corner.com/menu/orders-items.json")
       .then(res => res.json())
-      .then(setMenu)
+      .then(data => setMenu(data))
       .catch(err => {
         console.error("Failed to load menu", err);
         setMenu([]);
@@ -26,7 +26,7 @@ const KaunterMenu = () => {
   const flatMenu = useMemo(() => {
     if (!menu || typeof menu !== 'object') return [];
     return Object.entries(menu).flatMap(([cat, items]) =>
-      items.map((i) => ({ ...i, category: cat }))
+      Array.isArray(items) ? items.map(i => ({ ...i, category: cat })) : []
     );
   }, [menu]);
 
