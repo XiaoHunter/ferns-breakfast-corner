@@ -182,16 +182,61 @@ export default function OrderMenu() {
             <h2 className="text-xl font-bold mb-2">📂 {selectedCategory}</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {menu[selectedCategory].map((item) => {
-                const ordered = order[item.name];
-                const price = Number(item.price || 0);
+                const ordered = order[item.name] || {};
+                const isDrink = selectedCategory.startsWith("饮料");
+                const hotPrice = item.hotPrice ?? item.price ?? 0;
+                const coldPrice = item.coldPrice ?? item.price ?? 0;
+
+                const selectedType = ordered.type || (isDrink ? "hot" : "standard");
+                const basePrice = selectedType === "cold" ? coldPrice : hotPrice;
+                const packedFee = isDrink && ordered.packed ? 0.2 : 0;
+                const totalPrice = Number(basePrice) + packedFee;
+
                 return (
                   <div key={item.name} className="bg-white p-4 rounded shadow">
-                    <h2 className="font-semibold text-lg">{item.chineseName}{item.name}</h2>
-                    <p>RM {price.toFixed(2)}</p>
+                    <h2 className="font-semibold text-lg">
+                      {item.chineseName}{item.name}
+                    </h2>
+                    <p>
+                      RM {totalPrice.toFixed(2)}{" "}
+                      {isDrink && (
+                        <span className="text-sm text-gray-500">
+                          ({selectedType === "hot" ? "热 (Hot)" : "冷 (Cold)"}{ordered.packed ? " + 打包" : ""})
+                        </span>
+                      )}
+                    </p>
+
+                    {/* 饮料选项 */}
+                    {isDrink && (
+                      <div className="mt-2 flex flex-wrap gap-2 text-sm">
+                        <button
+                          onClick={() => updateQty(item, 0, "hot")}
+                          className={`px-2 py-1 rounded border ${selectedType === "hot" ? "bg-yellow-300" : ""}`}
+                        >
+                          热
+                        </button>
+                        <button
+                          onClick={() => updateQty(item, 0, "cold")}
+                          className={`px-2 py-1 rounded border ${selectedType === "cold" ? "bg-yellow-300" : ""}`}
+                        >
+                          冷
+                        </button>
+                        <label className="flex items-center space-x-1">
+                          <input
+                            type="checkbox"
+                            checked={!!ordered.packed}
+                            onChange={() => updateQty(item, 0, selectedType, !ordered.packed)}
+                          />
+                          <span>打包 (Takeaway)</span>
+                        </label>
+                      </div>
+                    )}
+
+                    {/* 数量控制 */}
                     <div className="flex gap-2 mt-2">
-                      <button className="px-3 py-1 bg-gray-300 rounded" onClick={() => updateQty(item, -1)}>-</button>
-                      <span>{ordered?.qty || 0}</span>
-                      <button className="px-3 py-1 bg-green-400 rounded" onClick={() => updateQty(item, 1)}>+</button>
+                      <button className="px-3 py-1 bg-gray-300 rounded" onClick={() => updateQty(item, -1)}>➖</button>
+                      <span>{ordered.qty || 0}</span>
+                      <button className="px-3 py-1 bg-green-400 rounded" onClick={() => updateQty(item, 1)}>➕</button>
                     </div>
                   </div>
                 );
