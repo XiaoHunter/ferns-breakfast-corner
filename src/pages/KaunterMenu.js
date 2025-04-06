@@ -69,6 +69,7 @@ const KaunterMenu = () => {
         return formatLine(name, item.qty, item.qty * item.unitPrice);
       });
 
+
     const html = `
     <html><head><title>Receipt</title>
     <style>
