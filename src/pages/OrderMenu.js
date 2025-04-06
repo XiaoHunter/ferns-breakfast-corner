@@ -44,57 +44,56 @@ export default function OrderMenu() {
       });
   }, []);
 
-  const updateQty = (item, delta = 0, type = null, packed = null) => {
+  const updateQty = (item, delta = 0, type = "hot", packed = false) => {
     const key = item.name;
     setOrder((prev) => {
-      const existing = prev[key] || {};
-      const newQty = (existing.qty || 0) + delta;
+      const combos = prev[key] || [];
+      const idx = combos.findIndex((c) => c.type === type && c.packed === packed);
+      const updatedCombos = [...combos];
 
-      // 如果 qty 是 0，但用户要选冷热/打包，就强制 newQty 为 1
-      const isInitialSelection = delta === 0 && (!existing.qty || existing.qty === 0);
-      const qty = isInitialSelection ? 1 : newQty;
-
-      if (qty <= 0) {
-        const { [key]: _, ...rest } = prev;
-        return rest;
+      if (idx !== -1) {
+        // 组合已存在，更新数量
+        const newQty = updatedCombos[idx].qty + delta;
+        if (newQty <= 0) {
+          updatedCombos.splice(idx, 1);
+        } else {
+          updatedCombos[idx].qty = newQty;
+        }
+      } else {
+        // 新组合（自动加 1）
+        if (delta <= 0) delta = 1;
+        updatedCombos.push({ qty: delta, type, packed });
       }
 
       return {
         ...prev,
-        [key]: {
-          name: item.name,
-          qty,
-          type: type ?? existing.type ?? "hot",   // 默认 hot
-          packed: packed ?? existing.packed ?? false,
-        },
+        [key]: updatedCombos.length > 0 ? updatedCombos : undefined,
       };
     });
   };
 
   const getTotal = () => {
     let sum = 0;
-
     const flatMenu = Object.entries(menu).flatMap(([cat, items]) =>
       items.map((item) => ({ ...item, category: cat }))
     );
 
-    for (const item of Object.values(order)) {
-      const matched = flatMenu.find((d) => d.name === item.name);
+    for (const [name, combos] of Object.entries(order)) {
+      const matched = flatMenu.find((d) => d.name === name);
       if (!matched) continue;
 
-      // 🧊 区分冷/热价钱
-      const basePrice =
-        item.type === "cold"
-          ? Number(matched.coldPrice ?? matched.price ?? 0)
-          : item.type === "hot"
-          ? Number(matched.hotPrice ?? matched.price ?? 0)
-          : Number(matched.price ?? 0);
+      for (const combo of combos) {
+        const basePrice =
+          combo.type === "cold"
+            ? Number(matched.coldPrice ?? matched.price ?? 0)
+            : combo.type === "hot"
+            ? Number(matched.hotPrice ?? matched.price ?? 0)
+            : Number(matched.price ?? 0);
 
-      const isDrinkCategory = matched.category && matched.category.startsWith("饮料");
-      const packedFee = isDrinkCategory && item.packed ? 0.2 : 0;
-      const addonTotal = (item.addons || []).reduce((sum, addon) => sum + addon.price, 0);
-
-      sum += item.qty * (basePrice + packedFee + addonTotal);
+        const packedFee = matched.category?.startsWith("饮料") && combo.packed ? 0.2 : 0;
+        const addonTotal = (combo.addons || []).reduce((s, a) => s + a.price, 0);
+        sum += combo.qty * (basePrice + packedFee + addonTotal);
+      }
     }
 
     return sum.toFixed(2);
@@ -269,13 +268,13 @@ export default function OrderMenu() {
         <div className="mt-10 p-4 bg-white rounded shadow">
           <h2 className="text-xl font-semibold mb-2">🧾 Current Order</h2>
           <ul className="mb-2">
-            {Object.values(order).map((item, idx) => (
-              <li key={idx}>
-                {item.name}
-                {item.type === "cold" ? " (Cold)" : item.type === "hot" ? " (Hot)" : ""}
-                {item.packed ? " (Takeaway)" : ""} x {item.qty}
-              </li>
-            ))}
+            {Object.entries(order).map(([name, combos]) =>
+              combos.map((combo, idx) => (
+                <li key={`${name}-${idx}`}>
+                  {name} ({combo.type === "hot" ? "热" : "冷"}{combo.packed ? " + 打包" : ""}) × {combo.qty}
+                </li>
+              ))
+            )}
           </ul>
           <h2 className="text-lg font-bold">Total: RM {getTotal()}</h2>
           <div className="mt-2 flex gap-4">
