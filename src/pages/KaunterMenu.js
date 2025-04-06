@@ -33,11 +33,12 @@ const KaunterMenu = () => {
       const comboTotal = ((basePrice + addonTotal + packedFee) * item.qty).toFixed(2);
 
       return `
-        <tr><td colspan="2">🍹 ${item.name} - ${typeLabel}${packedLabel}${addonLabel}</td></tr>
+        <tr><td colspan="2">🍹 ${item.name} - ${type}${packed}${addons}</td></tr>
         <tr><td>x ${item.qty}</td><td style="text-align:right">RM ${comboTotal}</td></tr>
       `;
     }).join("");
 
+    printWindow.document.open();
     printWindow.document.write(`
       <html><head><style>
         body { font-family: Arial; font-size: 13px; padding: 10px; }
