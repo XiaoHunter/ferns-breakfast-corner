@@ -6,8 +6,6 @@ const KaunterMenu = () => {
   const [orders, setOrders] = useState([]);
   const [editingTable, setEditingTable] = useState(null);
   const [tableInputs, setTableInputs] = useState({});
-  const [cashInput, setCashInput] = useState({});
-  const [selectedOrder, setSelectedOrder] = useState(null);
   
   const getMalaysiaToday = () => {
     const now = new Date();
@@ -86,47 +84,39 @@ const KaunterMenu = () => {
     printWindow.contentWindow.print();
   };
 
-  const updateSingleOrder = async (updateSingleOrder) => {
-    try {
-      const res = await fetch("ttps://ferns-breakfast-corner.com/api/update-order.php", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(updateSingleOrder),
+  const updateSingleOrder = (order) => {
+    fetch("https://ferns-breakfast-corner.com/api/update-order.php", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(order),
+    })
+      .then((res) => res.json())
+      .then((res) => {
+        if (res.status === "success") {
+          alert("✅ 更新成功");
+        } else {
+          alert("❌ 更新失败: " + res.message);
+        }
       });
-      const result = await res.json();
-      if (result.status === "success") fetchOrders();
-      else alert("更新失败: " + result.message);
-    } catch (err) {
-      console.error("更新失败", err);
-    }
   };
 
-  const markAsPaid = (order, method) => {
-    const updated = {
-      ...order,
+  const markAsPaid = (index, method) => {
+    const confirmText = method === "cash" ? "现金付款" : "电子钱包付款";
+    if (!window.confirm(`确认要进行${confirmText}？`)) return;
+
+    const updatedOrder = {
+      ...orders[index],
       status: "completed",
-      payment: method,
+      payment: method
     };
-    updateSingleOrder(updated);
-  };
 
-  const handleCashPayment = (order) => {
-    const cashStr = prompt("客人给多少现金？");
-    if (!cashStr) return;
-    const cash = parseFloat(cashStr);
-    if (isNaN(cash)) return alert("请输入有效金额");
+    updateSingleOrder(updatedOrder);
 
-    const change = cash - order.total;
-    const confirmed = window.confirm(`应收 RM ${order.total.toFixed(2)}\n收到 RM ${cash.toFixed(2)}\n找零 RM ${change.toFixed(2)}\n\n确认付款？`);
-    if (!confirmed) return;
-
-    markAsPaid(order, "cash");
-  };
-
-  const handleEwalletPayment = (order) => {
-    const confirmed = window.confirm("确认已通过电子钱包付款？");
-    if (!confirmed) return;
-    markAsPaid(order, "ewallet");
+    setOrders((prevOrders) => {
+      const newOrders = [...prevOrders];
+      newOrders[index] = updatedOrder;
+      return newOrders;
+    });
   };
 
   const cancelOrder = (index) => {
@@ -254,8 +244,8 @@ const KaunterMenu = () => {
             <p style={{ color: "gray" }}>❌ 已取消</p>
           ) : (
             <div>
-              <button onClick={() => handleCashPayment(order)}>💵 现金付款</button>
-              <button onClick={() => handleEwalletPayment(order)} style={{ marginLeft: 10 }}>📱 电子钱包付款</button>
+              <button onClick={() => markAsPaid(index, "cash")}>💵 现金付款</button>
+              <button onClick={() => markAsPaid(index, "ewallet")} style={{ marginLeft: 10 }}>📱 电子钱包付款</button>
               <button onClick={() => cancelOrder(index)} style={{ marginLeft: 10, color: "red" }}>❌ 取消订单</button>
             </div>
           )}
