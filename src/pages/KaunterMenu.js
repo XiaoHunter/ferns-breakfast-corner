@@ -209,7 +209,7 @@ const KaunterMenu = () => {
 
                 console.log("👉 basePrice:", basePrice);
                 console.log("👉 matched:", matched);
-                console.log("m.name: ", m.name, " item.name: ", , item.name)
+                console.log("m.name: ", m.name, " item.name: ", item.name)
               const addonTotal = (item.addons || []).reduce((s, a) => s + a.price, 0);
               const packedFee = item.packed ? 0.2 : 0;
               const comboTotal = ((basePrice + addonTotal + packedFee) * item.qty).toFixed(2);
