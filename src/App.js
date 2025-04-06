@@ -1,6 +1,6 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
-import HomePage from "./Home";
+import Home from "./Home";
 import OrderMenu from "./pages/OrderMenu";
 import KaunterMenu from "./pages/KaunterMenu";
 import MerchantMenu from "./pages/MerchantMenu";
