@@ -39,6 +39,7 @@ const KaunterMenu = () => {
 
   const printOrder = (order) => {
     const printWindow = window.open("", "_blank", "width=400,height=600");
+    if (!printWindow) return;
 
     const time = formatMalaysiaTime(order.time);
     const total = Number(order.total || 0).toFixed(2);
@@ -86,7 +87,7 @@ const KaunterMenu = () => {
           window.onload = function () {
             setTimeout(() => {
               window.print();
-            }, 1000); // 延迟 1 秒更稳定
+            }, 5000);
           };
         </script>
       </body></html>
@@ -94,6 +95,7 @@ const KaunterMenu = () => {
 
     printWindow.document.write(html);
     printWindow.document.close();
+    printWindow.print();
   };
 
   const lastOrderIdRef = useRef(0);
