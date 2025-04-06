@@ -132,22 +132,51 @@ const KaunterMenu = () => {
   };
 
   const markAsPaid = (index, method) => {
-    const confirmText = method === "cash" ? "现金付款" : "电子钱包付款";
-    if (!window.confirm(`确认要进行${confirmText}？`)) return;
+    const order = orders[index];
+    
+    if (method === "cash") {
+      const input = prompt(`💵 顾客总共付款多少？（订单金额 RM${order.total.toFixed(2)}）`);
+      if (!input) return;
 
-    const updatedOrder = {
-      ...orders[index],
-      status: "completed",
-      payment: method
-    };
+      const paid = parseFloat(input);
+      if (isNaN(paid) || paid < order.total) {
+        alert("❌ 输入无效或付款金额不足！");
+        return;
+      }
 
-    updateSingleOrder(updatedOrder);
+      const change = (paid - order.total).toFixed(2);
+      if (!window.confirm(`✅ 顾客付款 RM${paid.toFixed(2)}\n应找零 RM${change}\n\n确认完成付款？`)) return;
 
-    setOrders((prevOrders) => {
-      const newOrders = [...prevOrders];
-      newOrders[index] = updatedOrder;
-      return newOrders;
-    });
+      const updatedOrder = {
+        ...order,
+        status: "completed",
+        payment: "cash",
+        paidAmount: paid,
+        change: Number(change),
+      };
+
+      updateSingleOrder(updatedOrder);
+      setOrders((prevOrders) => {
+        const newOrders = [...prevOrders];
+        newOrders[index] = updatedOrder;
+        return newOrders;
+      });
+    } else {
+      if (!window.confirm(`确认要进行电子钱包付款？`)) return;
+
+      const updatedOrder = {
+        ...order,
+        status: "completed",
+        payment: "ewallet"
+      };
+
+      updateSingleOrder(updatedOrder);
+      setOrders((prevOrders) => {
+        const newOrders = [...prevOrders];
+        newOrders[index] = updatedOrder;
+        return newOrders;
+      });
+    }
   };
 
   const cancelOrder = (index) => {
