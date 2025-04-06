@@ -58,13 +58,10 @@ const KaunterMenu = () => {
       const packedFee = item.packed ? 0.2 : 0;
       const comboTotal = ((basePrice + addonTotal + packedFee) * item.qty).toFixed(2);
 
-      console.log("A1 matched menu item:", matched, "for", item.name);
-      console.log("A2 comboTotal:", comboTotal);
-
       return `
         <tr>
           <td>
-            🍹 ${item.name} - ${type}${packed}${addons} x ${item.qty}
+            ${item.name} - ${type}${packed}${addons} x ${item.qty}
           </td>
           <td style="text-align:right">
             RM ${comboTotal}
@@ -89,15 +86,9 @@ const KaunterMenu = () => {
       </body></html>
     `;
 
-    console.log("A3 HTML:", html);
-
     printWindow.document.write(html);
     printWindow.document.close();
-    printWindow.onload = () => {
-      printWindow.focus();
-      printWindow.print();
-      printWindow.close();
-    };
+    printWindow.print();
   };
 
   const lastOrderIdRef = useRef(0);
