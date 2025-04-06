@@ -1,4 +1,5 @@
 import React, { useEffect, useState , useRef } from "react";
+import menu from "https://ferns-breakfast-corner.com/menu/orders-items.json";
 
 const KaunterMenu = () => {
   const [token, setToken] = useState(null);
@@ -22,7 +23,7 @@ const KaunterMenu = () => {
       const type = item.type === "hot" ? "Hot" : item.type === "cold" ? "Cold" : "";
       const packed = item.packed ? "（Takeaway）" : "";
       const addons = item.addons?.length ? " + " + item.addons.map(a => a.name).join(" + ") : "";
-      const flatMenu = Object.entries(orders).flatMap(([cat, items]) =>
+      const flatMenu = Object.entries(menu).flatMap(([cat, items]) =>
                 items.map((i) => ({ ...i, category: cat }))
               );
       const matched = flatMenu.find(m => m.name === item.name);
@@ -40,32 +41,28 @@ const KaunterMenu = () => {
       `;
     }).join("");
 
-    setTimeout(() => {
-      printWindow.document.write(`
-        <html><head><style>
-          body { font-family: Arial; font-size: 13px; padding: 10px; }
-          h2, p { margin: 0 0 8px 0; text-align: center; }
-          ul { list-style: none; padding-left: 0; }
-        </style></head><body>
-          <h2>🧾 Ferns Breakfast Corner</h2>
-          <p>订单编号: ${order.orderId}</p>
-          <p>Table: ${order.tableNo}</p>
-          <p>时间: ${time}</p>
-          <p>总价: RM ${total}</p>
-          <p>饮料：</p>
-          <ul>${items}</ul>
-        </body></html>
-      `);
+    printWindow.document.write(`
+      <html><head><style>
+        body { font-family: Arial; font-size: 13px; padding: 10px; }
+        h2, p { margin: 0 0 8px 0; text-align: center; }
+        ul { list-style: none; padding-left: 0; }
+      </style></head><body>
+        <h2>🧾 Ferns Breakfast Corner</h2>
+        <p>订单编号: ${order.orderId}</p>
+        <p>Table: ${order.tableNo}</p>
+        <p>时间: ${time}</p>
+        <p>总价: RM ${total}</p>
+        <p>饮料：</p>
+        <ul>${items}</ul>
+      </body></html>
+    `);
 
-      printWindow.document.close();
-      printWindow.onload = () => {
-        printWindow.focus();
-        printWindow.print();
-        setTimeout(() => {
-          printWindow.close();
-        }, 500);
-      };
-    }, 5000);
+    printWindow.document.close();
+    printWindow.onload = () => {
+      printWindow.focus();
+      printWindow.print();
+      printWindow.close();
+    };
   };
 
   const lastOrderIdRef = useRef(0);
@@ -79,7 +76,9 @@ const KaunterMenu = () => {
           const latest = [...data].sort((a, b) => b.orderId - a.orderId)[0];
           if (!latest.printRef && latest.orderId > lastOrderIdRef.current) {
             lastOrderIdRef.current = latest.orderId;
-            printOrder(latest); // 👈 自动打印
+            setTimeout(() => {
+              printOrder(latest);
+            }, 5000);
             fetch("https://ferns-breakfast-corner.com/api/mark-order-printed.php", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
@@ -170,7 +169,7 @@ const KaunterMenu = () => {
               const addonLabel = item.addons?.length
                 ? " + " + item.addons.map(a => a.name).join(" + ")
                 : "";
-              const flatMenu = Object.entries(orders).flatMap(([cat, items]) =>
+              const flatMenu = Object.entries(menu).flatMap(([cat, items]) =>
                 items.map((i) => ({ ...i, category: cat }))
               );
               const matched = flatMenu.find(m => m.name === item.name);
