@@ -142,7 +142,7 @@ const KaunterMenu = () => {
       if (isNaN(paid) || paid < order.total) {
         alert("❌ 输入无效或付款金额不足！");
         return;
-      }
+      }//D
 
       const change = (paid - order.total).toFixed(2);
       if (!window.confirm(`✅ 顾客付款 RM${paid.toFixed(2)}\n应找零 RM${change}\n\n确认完成付款？`)) return;
