@@ -1,4 +1,3 @@
-// ✅ OrderMenu.js 新增 New Order + Table No 选择 + 注释掉我的订单 + 仅显示饮料
 import React, { useState, useEffect } from "react";
 
 const OrderMenu = () => {
@@ -6,7 +5,8 @@ const OrderMenu = () => {
   const [orderItems, setOrderItems] = useState([]);
   const [tableNo, setTableNo] = useState("");
   const [orderId, setOrderId] = useState(null);
-  const [selectingTable, setSelectingTable] = useState(false);
+  const [showTableSelect, setShowTableSelect] = useState(false);
+  const [selectedTable, setSelectedTable] = useState("");
 
   useEffect(() => {
     fetch("/menu/orders-items.json")
@@ -17,15 +17,17 @@ const OrderMenu = () => {
   const startNewOrder = () => {
     setOrderItems([]);
     setOrderId(null);
-    setSelectingTable(true);
+    setSelectedTable(""); // 重置
+    setShowTableSelect(true);
   };
 
-  const confirmTable = (e) => {
-    const selected = e.target.value;
-    if (selected) {
-      setTableNo(selected);
-      setSelectingTable(false);
+  const confirmTableSelection = () => {
+    if (!selectedTable) {
+      alert("⚠️ 请选择一个桌号！");
+      return;
     }
+    setTableNo(selectedTable);
+    setShowTableSelect(false);
   };
 
   const addToOrder = (item) => {
@@ -133,6 +135,27 @@ const OrderMenu = () => {
         </ul>
         <button onClick={requestBill} className="mt-4 bg-blue-600 text-white px-4 py-2 rounded">🧾 请求账单</button>
       </div>
+      {showTableSelect && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded shadow w-80">
+            <h2 className="text-lg font-bold mb-4">🪑 选择桌号</h2>
+            <select
+              value={selectedTable}
+              onChange={(e) => setSelectedTable(e.target.value)}
+              className="w-full p-2 border rounded mb-4"
+            >
+              <option value="">请选择桌号</option>
+              {[...Array(12)].map((_, i) => (
+                <option key={i + 1} value={i + 1}>{i + 1}</option>
+              ))}
+            </select>
+            <div className="flex justify-end space-x-2">
+              <button onClick={() => setShowTableSelect(false)} className="px-3 py-1 bg-gray-300 rounded">取消</button>
+              <button onClick={confirmTableSelection} className="px-3 py-1 bg-green-500 text-white rounded">确认</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

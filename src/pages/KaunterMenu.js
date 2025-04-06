@@ -1,4 +1,3 @@
-// ✅ KaunterMenu.js 更新：隐藏按钮、显示日期、Filter 日期、总金额
 import React, { useEffect, useState } from "react";
 
 const KaunterMenu = () => {
@@ -85,14 +84,6 @@ const KaunterMenu = () => {
               <li key={i}>{item.name} x {item.qty}</li>
             ))}
           </ul>
-
-          {/*
-          <div className="mt-2">
-            <button onClick={() => markAsPaid(index, "cash")}>💵 现金付款</button>
-            <button onClick={() => markAsPaid(index, "ewallet")} style={{ marginLeft: 10 }}>📱 电子钱包付款</button>
-            <button onClick={() => cancelOrder(index)} style={{ marginLeft: 10, color: "red" }}>❌ 取消订单</button>
-          </div>
-          */}
         </div>
       ))}
     </div>
