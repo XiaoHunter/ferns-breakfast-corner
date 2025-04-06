@@ -52,37 +52,36 @@ const KaunterMenu = () => {
   };
 
   const printReceipt = (order) => {
-    const w = window.open("", "PRINT", "height=600,width=400");
-    w.document.write(`<html><head><title>Receipt</title>
+    const printContent = `
+      <html><head><title>Receipt</title>
       <style>
-        body { font-family: monospace; width: 58mm; }
-        h2, p, li { margin: 0; padding: 2px 0; }
-        ul { padding-left: 0; list-style: none; }
-        hr { margin: 6px 0; border: none; border-top: 1px dashed #000; }
+        body { font-family: monospace; font-size: 12px; width: 58mm; }
+        h2, p, li { margin: 0; padding: 2px 0; text-align: center; }
+        ul { list-style: none; padding: 0; }
+        hr { border: none; border-top: 1px dashed #000; margin: 6px 0; }
       </style>
-    </head><body>`);
+      </head><body>
+        <h2>FERNS BREAKFAST CORNER</h2>
+        <p>订单: ${order.orderId}</p>
+        <p>时间: ${new Date(order.time).toLocaleString("en-MY")}</p>
+        <hr />
+        <ul>
+          ${order.items.map(i => `<li>${i.name} x ${i.qty}</li>`).join('')}
+        </ul>
+        <hr />
+        <p>总计: RM ${order.total.toFixed(2)}</p>
+        <p>付款方式: ${order.payment}</p>
+        <p>谢谢惠顾！</p>
+      </body></html>
+    `;
 
-    w.document.write(`<h2>FERNS BREAKFAST CORNER</h2>`);
-    w.document.write(`<p>日期: ${formatMalaysiaTime(order.time)}</p>`);
-    w.document.write(`<p>订单: ${order.orderId}</p>`);
-    w.document.write(`<p>桌号: ${order.table || order.deviceId}</p><hr/>`);
-
-    order.items.forEach(item => {
-      if (item.qty > 0) {
-        w.document.write(`<p>${item.name} x ${item.qty}</p>`);
-      }
-    });
-
-    w.document.write(`<hr/><p><strong>总计: RM ${order.total.toFixed(2)}</strong></p>`);
-    if (order.payment) {
-      w.document.write(`<p>付款方式: ${order.payment}</p>`);
-    }
-    w.document.write(`<p>谢谢惠顾！</p>`);
-    w.document.write(`</body></html>`);
-    w.document.close();
-    w.focus();
-    w.print();
-    w.close();
+    const printWindow = document.createElement("iframe");
+    printWindow.style.display = "none";
+    document.body.appendChild(printWindow);
+    printWindow.contentDocument.write(printContent);
+    printWindow.contentDocument.close();
+    printWindow.contentWindow.focus();
+    printWindow.contentWindow.print();
   };
 
   const updateSingleOrder = (order) => {
