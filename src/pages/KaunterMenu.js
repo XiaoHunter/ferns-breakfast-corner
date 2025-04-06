@@ -61,7 +61,7 @@ const KaunterMenu = () => {
   useEffect(() => {
     if (!token) return;
     const fetchOrders = () => {
-      fetch(`https://your-server/orders/orders-${selectedDate}.json?t=${Date.now()}`)
+      fetch(`https://ferns-breakfast-corner.com/orders/orders-${selectedDate}.json?t=${Date.now()}`)
         .then(res => res.json())
         .then((data) => {
           const latest = [...data].sort((a, b) => b.orderId - a.orderId)[0];
