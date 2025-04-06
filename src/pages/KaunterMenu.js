@@ -23,6 +23,13 @@ const KaunterMenu = () => {
       });
   }, []);
 
+  const flatMenu = useMemo(() => {
+    if (!menu || typeof menu !== 'object') return [];
+    return Object.entries(menu).flatMap(([cat, items]) =>
+      items.map((i) => ({ ...i, category: cat }))
+    );
+  }, [menu]);
+
   const printOrder = (order) => {
     const printWindow = window.open("", "_blank", "width=400,height=600");
     if (!printWindow) return;
@@ -33,9 +40,6 @@ const KaunterMenu = () => {
       const type = item.type === "hot" ? "Hot" : item.type === "cold" ? "Cold" : "";
       const packed = item.packed ? "（Takeaway）" : "";
       const addons = item.addons?.length ? " + " + item.addons.map(a => a.name).join(" + ") : "";
-      const flatMenu = Object.entries(menu).flatMap(([cat, items]) =>
-                items.map((i) => ({ ...i, category: cat }))
-              );
       const matched = flatMenu.find(m => m.name === item.name);
       const basePrice =
         item.type === "cold" ? Number(matched?.coldPrice ?? matched?.price ?? 0)
@@ -180,12 +184,6 @@ const KaunterMenu = () => {
           <div><strong>总价:</strong> RM {parseFloat(order.total || 0).toFixed(2)}</div>
           <ul className="mt-2">
             <li><strong>饮料：</strong></li>
-            const flatMenu = useMemo(() => {
-              if (!menu || typeof menu !== 'object') return [];
-              return Object.entries(menu).flatMap(([cat, items]) =>
-                items.map((i) => ({ ...i, category: cat }))
-              );
-            }, [menu]);
             {order.items.map((item, i) => {
               const typeLabel = item.type === "hot" ? "Hot" : item.type === "cold" ? "Cold" : "";
               const packedLabel = item.packed ? "（Takeaway）" : "";
