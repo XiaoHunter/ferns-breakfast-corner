@@ -49,6 +49,9 @@ const KaunterMenu = () => {
       const packedFee = item.packed ? 0.2 : 0;
       const comboTotal = ((basePrice + addonTotal + packedFee) * item.qty).toFixed(2);
 
+      console.log("A1 matched menu item:", matched, "for", item.name);
+      console.log("A2 comboTotal:", comboTotal);
+
       return `
         <tr>
           <td>
@@ -61,7 +64,7 @@ const KaunterMenu = () => {
       `;
     }).join("");
 
-    printWindow.document.write(`
+    const html = `
       <html><head><style>
         body { font-family: Arial; font-size: 13px; padding: 10px; }
         h2, p { margin: 0 0 8px 0; text-align: center; }
@@ -75,8 +78,11 @@ const KaunterMenu = () => {
         <p>饮料：</p>
         <ul>${items}</ul>
       </body></html>
-    `);
+    `;
 
+    console.log("A3 HTML:", html);
+
+    printWindow.document.write(html);
     printWindow.document.close();
     printWindow.onload = () => {
       printWindow.focus();
