@@ -95,9 +95,6 @@ const KaunterMenu = () => {
     printWindow.document.write(html);
     printWindow.document.close();
     printWindow.print();
-    useEffect(() => {
-      window.print();
-    }, []);
   };
 
   const lastOrderIdRef = useRef(0);
