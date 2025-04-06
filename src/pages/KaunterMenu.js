@@ -86,34 +86,28 @@ const KaunterMenu = () => {
     printWindow.contentWindow.print();
   };
 
-  const updateSingleOrder = (order) => {
-    fetch("https://ferns-breakfast-corner.com/api/update-order.php", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(order),
-    })
-      .then((res) => res.json())
-      .then((res) => {
-        if (res.status === "success") {
-          alert("✅ 更新成功");
-        } else {
-          alert("❌ 更新失败: " + res.message);
-        }
+  const updateSingleOrder = async (updateSingleOrder) => {
+    try {
+      const res = await fetch("ttps://ferns-breakfast-corner.com/api/update-order.php", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updateSingleOrder),
       });
+      const result = await res.json();
+      if (result.status === "success") fetchOrders();
+      else alert("更新失败: " + result.message);
+    } catch (err) {
+      console.error("更新失败", err);
+    }
   };
 
-  const markAsPaid = (index, method) => {
-    const confirmText = method === "cash" ? "现金付款" : "电子钱包付款";
-    if (!window.confirm(`确认要进行${confirmText}？`)) return;
-
-    const updatedOrder = {
-      ...orders[index],
+  const markAsPaid = (order, method) => {
+    const updated = {
+      ...order,
       status: "completed",
-      payment: method
+      payment: method,
     };
-
-    const handleCashChange = (orderId, value) => {
-    setCashInput(prev => ({ ...prev, [orderId]: value }));
+    updateSingleOrder(updated);
   };
 
   const handleCashPayment = (order) => {
@@ -133,46 +127,6 @@ const KaunterMenu = () => {
     const confirmed = window.confirm("确认已通过电子钱包付款？");
     if (!confirmed) return;
     markAsPaid(order, "ewallet");
-  };
-
-  return (
-    <div className="p-4">
-      <h2 className="text-lg font-bold mb-4">📜 Kaunter Order List</h2>
-      {orders.map((order) => {
-        const total = order.total || 0;
-        const cash = parseFloat(cashInput[order.orderId]) || 0;
-        const change = cash >= total ? (cash - total).toFixed(2) : "0.00";
-
-        return (
-          <div key={order.orderId} className="border p-3 mb-4 rounded shadow">
-            <div><strong>订单编号:</strong> {order.orderId}</div>
-            <div><strong>Table:</strong> {order.table || order.deviceId}</div>
-            <div><strong>时间:</strong> {formatMalaysiaTime(order.time)}</div>
-            <div><strong>总价:</strong> RM {total.toFixed(2)}</div>
-            <div className="mt-2">
-              <label>💵 现金付款: </label>
-              <input
-                type="number"
-                placeholder="输入客户付款金额"
-                value={cashInput[order.orderId] || ""}
-                onChange={(e) => handleCashChange(order.orderId, e.target.value)}
-                className="border px-2 mx-2"
-              />
-              <span>找零: RM {change}</span>
-            </div>
-          </div>
-        );
-      })}
-    </div>
-  );
-
-    updateSingleOrder(updatedOrder);
-
-    setOrders((prevOrders) => {
-      const newOrders = [...prevOrders];
-      newOrders[index] = updatedOrder;
-      return newOrders;
-    });
   };
 
   const cancelOrder = (index) => {
