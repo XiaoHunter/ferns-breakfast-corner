@@ -1,5 +1,6 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
+import HomePage from "./HomePage";
 import OrderMenu from "./pages/OrderMenu";
 import KaunterMenu from "./pages/KaunterMenu";
 import MerchantMenu from "./pages/MerchantMenu";
@@ -13,7 +14,8 @@ function App() {
           <Link className="text-blue-600" to="/">Order Menu</Link>
         </nav>
         <Routes>
-          <Route path="/" element={<OrderMenu />} />
+          <Route path="/" element={<HomePage />} />
+          <Route path="/ordermenu" element={<OrderMenu />} />
           <Route path="/kaunter" element={<KaunterMenu />} />
           <Route path="/merchant" element={<MerchantMenu />} />
         </Routes>
