@@ -22,7 +22,7 @@ const KaunterMenu = () => {
       const type = item.type === "hot" ? "Hot" : item.type === "cold" ? "Cold" : "";
       const packed = item.packed ? "（Takeaway）" : "";
       const addons = item.addons?.length ? " + " + item.addons.map(a => a.name).join(" + ") : "";
-      const flatMenu = Object.entries(menu).flatMap(([cat, items]) =>
+      const flatMenu = Object.entries(orders).flatMap(([cat, items]) =>
                 items.map((i) => ({ ...i, category: cat }))
               );
       const matched = flatMenu.find(m => m.name === item.name);
@@ -65,7 +65,7 @@ const KaunterMenu = () => {
           printWindow.close();
         }, 500);
       };
-    }, 500);
+    }, 5000);
   };
 
   const lastOrderIdRef = useRef(0);
@@ -170,7 +170,7 @@ const KaunterMenu = () => {
               const addonLabel = item.addons?.length
                 ? " + " + item.addons.map(a => a.name).join(" + ")
                 : "";
-              const flatMenu = Object.entries(menu).flatMap(([cat, items]) =>
+              const flatMenu = Object.entries(orders).flatMap(([cat, items]) =>
                 items.map((i) => ({ ...i, category: cat }))
               );
               const matched = flatMenu.find(m => m.name === item.name);
