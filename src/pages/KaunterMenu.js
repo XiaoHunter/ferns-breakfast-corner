@@ -7,6 +7,7 @@ const KaunterMenu = () => {
   const [editingTable, setEditingTable] = useState(null);
   const [tableInputs, setTableInputs] = useState({});
   const [cashInput, setCashInput] = useState({});
+  const [selectedOrder, setSelectedOrder] = useState(null);
   
   const getMalaysiaToday = () => {
     const now = new Date();
@@ -113,6 +114,25 @@ const KaunterMenu = () => {
 
     const handleCashChange = (orderId, value) => {
     setCashInput(prev => ({ ...prev, [orderId]: value }));
+  };
+
+  const handleCashPayment = (order) => {
+    const cashStr = prompt("客人给多少现金？");
+    if (!cashStr) return;
+    const cash = parseFloat(cashStr);
+    if (isNaN(cash)) return alert("请输入有效金额");
+
+    const change = cash - order.total;
+    const confirmed = window.confirm(`应收 RM ${order.total.toFixed(2)}\n收到 RM ${cash.toFixed(2)}\n找零 RM ${change.toFixed(2)}\n\n确认付款？`);
+    if (!confirmed) return;
+
+    markAsPaid(order, "cash");
+  };
+
+  const handleEwalletPayment = (order) => {
+    const confirmed = window.confirm("确认已通过电子钱包付款？");
+    if (!confirmed) return;
+    markAsPaid(order, "ewallet");
   };
 
   return (
@@ -280,8 +300,8 @@ const KaunterMenu = () => {
             <p style={{ color: "gray" }}>❌ 已取消</p>
           ) : (
             <div>
-              <button onClick={() => markAsPaid(index, "cash")}>💵 现金付款</button>
-              <button onClick={() => markAsPaid(index, "ewallet")} style={{ marginLeft: 10 }}>📱 电子钱包付款</button>
+              <button onClick={() => handleCashPayment(order)}>💵 现金付款</button>
+              <button onClick={() => handleEwalletPayment(order)} style={{ marginLeft: 10 }}>📱 电子钱包付款</button>
               <button onClick={() => cancelOrder(index)} style={{ marginLeft: 10, color: "red" }}>❌ 取消订单</button>
             </div>
           )}
