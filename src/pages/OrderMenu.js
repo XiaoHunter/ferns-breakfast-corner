@@ -17,7 +17,7 @@ export default function OrderMenu() {
   }, []);
 
   useEffect(() => {
-    fetch("/menu/orders-items.json")
+    fetch("https://ferns-breakfast-corner.com/menu/orders-items.json")
       .then((res) => res.json())
       .then((data) => {
         const drinksOnly = data.filter((item) => item.category.includes("饮料"));
@@ -65,7 +65,7 @@ export default function OrderMenu() {
       change: 0,
     };
 
-    fetch("/api/send-order.php", {
+    fetch("https://ferns-breakfast-corner.com/api/send-order.php", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(orderData),
