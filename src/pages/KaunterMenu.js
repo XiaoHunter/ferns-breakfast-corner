@@ -87,7 +87,7 @@ const KaunterMenu = () => {
           <div><strong>订单编号:</strong> {order.orderId}</div>
           <div><strong>Table:</strong> {order.table || order.deviceId}</div>
           <div><strong>时间:</strong> {formatMalaysiaTime(order.time)}</div>
-          <div><strong>总价:</strong> RM {order.total?.toFixed(2)}</div>
+          <div><strong>总价:</strong> RM {parseFloat(order.total || 0).toFixed(2)}</div>
           <ul className="mt-2">
             {order.items.map((item, i) => (
               <li key={i}>{item.name} x {item.qty}</li>
