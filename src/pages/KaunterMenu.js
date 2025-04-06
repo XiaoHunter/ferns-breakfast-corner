@@ -87,10 +87,8 @@ const KaunterMenu = () => {
           window.onload = function () {
             setTimeout(() => {
               window.print();
-
-              // 打印后再等待 3 秒关闭窗口
-              setTimeout(() => window.close(), 3000);
-            }, 2000); // 延迟 2 秒才执行 print
+              // 不自动关闭窗口，让用户决定是否关闭
+            }, 2000); // 延迟 2 秒打印
           };
         </script>
       </body></html>
