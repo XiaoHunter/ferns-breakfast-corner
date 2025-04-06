@@ -328,7 +328,8 @@ export default function OrderMenu() {
           <ul className="mb-2">
             {Object.values(order).map((item, idx) => (
               <li key={idx}>
-                {item.name} - {item.type?.toUpperCase() ?? "STANDARD"}
+                {item.name}
+                {item.type === "cold" ? "（Cold）" : item.type === "hot" ? "（Hot）" : ""}
                 {item.packed ? " + Takeaway" : ""} x {item.qty}
                 {item.addons?.length > 0 && <> + {item.addons.map((a) => a.name).join(", ")}</>} x {item.qty}
               </li>
