@@ -71,7 +71,7 @@ const KaunterMenu = () => {
       <head>
         <style>
           body { font-family: Arial; font-size: 12px; padding: 10px; }
-          img { display: block; margin: 0 auto 10px; width: 100px; }
+          img { display: block; margin: 0 auto 10px; width: 80px; }
           h2, p { text-align: center; margin: 0; }
           table { width: 100%; border-collapse: collapse; margin-top: 10px; }
           td { padding: 2px 0; }
