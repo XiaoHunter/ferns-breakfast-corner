@@ -22,12 +22,14 @@ const KaunterMenu = () => {
       const type = item.type === "hot" ? "Hot" : item.type === "cold" ? "Cold" : "";
       const packed = item.packed ? "（Takeaway）" : "";
       const addons = item.addons?.length ? " + " + item.addons.map(a => a.name).join(" + ") : "";
+      const flatMenu = Object.entries(menu).flatMap(([cat, items]) =>
+                items.map((i) => ({ ...i, category: cat }))
+              );
+      const matched = flatMenu.find(m => m.name === item.name);
       const basePrice =
-        item.type === "cold"
-          ? Number(item.coldPrice ?? item.price ?? 0)
-          : item.type === "hot"
-          ? Number(item.hotPrice ?? item.price ?? 0)
-          : Number(item.price ?? 0);
+        item.type === "cold" ? Number(matched?.coldPrice ?? matched?.price ?? 0)
+        : item.type === "hot" ? Number(matched?.hotPrice ?? matched?.price ?? 0)
+        : Number(matched?.price ?? 0);
       const addonTotal = (item.addons || []).reduce((s, a) => s + a.price, 0);
       const packedFee = item.packed ? 0.2 : 0;
       const comboTotal = ((basePrice + addonTotal + packedFee) * item.qty).toFixed(2);
@@ -38,31 +40,32 @@ const KaunterMenu = () => {
       `;
     }).join("");
 
-    printWindow.document.open();
-    printWindow.document.write(`
-      <html><head><style>
-        body { font-family: Arial; font-size: 13px; padding: 10px; }
-        h2, p { margin: 0 0 8px 0; text-align: center; }
-        ul { list-style: none; padding-left: 0; }
-      </style></head><body>
-        <h2>🧾 Ferns Breakfast Corner</h2>
-        <p>订单编号: ${order.orderId}</p>
-        <p>Table: ${order.tableNo}</p>
-        <p>时间: ${time}</p>
-        <p>总价: RM ${total}</p>
-        <p>饮料：</p>
-        <ul>${items}</ul>
-      </body></html>
-    `);
+    setTimeout(() => {
+      printWindow.document.write(`
+        <html><head><style>
+          body { font-family: Arial; font-size: 13px; padding: 10px; }
+          h2, p { margin: 0 0 8px 0; text-align: center; }
+          ul { list-style: none; padding-left: 0; }
+        </style></head><body>
+          <h2>🧾 Ferns Breakfast Corner</h2>
+          <p>订单编号: ${order.orderId}</p>
+          <p>Table: ${order.tableNo}</p>
+          <p>时间: ${time}</p>
+          <p>总价: RM ${total}</p>
+          <p>饮料：</p>
+          <ul>${items}</ul>
+        </body></html>
+      `);
 
-    printWindow.document.close();
-    printWindow.onload = () => {
-      printWindow.focus();
-      printWindow.print();
-      setTimeout(() => {
-        printWindow.close();
-      }, 500);
-    };
+      printWindow.document.close();
+      printWindow.onload = () => {
+        printWindow.focus();
+        printWindow.print();
+        setTimeout(() => {
+          printWindow.close();
+        }, 500);
+      };
+    }, 500);
   };
 
   const lastOrderIdRef = useRef(0);
@@ -167,12 +170,14 @@ const KaunterMenu = () => {
               const addonLabel = item.addons?.length
                 ? " + " + item.addons.map(a => a.name).join(" + ")
                 : "";
+              const flatMenu = Object.entries(menu).flatMap(([cat, items]) =>
+                items.map((i) => ({ ...i, category: cat }))
+              );
+              const matched = flatMenu.find(m => m.name === item.name);
               const basePrice =
-                item.type === "cold"
-                  ? Number(item.coldPrice ?? item.price ?? 0)
-                  : item.type === "hot"
-                  ? Number(item.hotPrice ?? item.price ?? 0)
-                  : Number(item.price ?? 0);
+                item.type === "cold" ? Number(matched?.coldPrice ?? matched?.price ?? 0)
+                : item.type === "hot" ? Number(matched?.hotPrice ?? matched?.price ?? 0)
+                : Number(matched?.price ?? 0);
               const addonTotal = (item.addons || []).reduce((s, a) => s + a.price, 0);
               const packedFee = item.packed ? 0.2 : 0;
               const comboTotal = ((basePrice + addonTotal + packedFee) * item.qty).toFixed(2);
