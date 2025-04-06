@@ -137,7 +137,10 @@ export default function OrderMenu() {
 
     const items = Object.values(order).map((item) => ({
       name: item.name,
+      type: item.type ? item.type.toUpperCase() : "STANDARD",
       qty: item.qty,
+      packed: item.packed,
+      addons: item.addons || [],
     }));
 
     const data = {
@@ -303,7 +306,7 @@ export default function OrderMenu() {
                         >
                           ➖
                         </button>
-                        <span>{ordered.qty || 0}</span>
+                        <span>{ordered?.qty || 0}</span>
                         <button
                           className="px-3 py-1 bg-green-400 rounded"
                           onClick={() => updateQty(item, 1)}
