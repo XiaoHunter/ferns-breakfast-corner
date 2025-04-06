@@ -216,13 +216,14 @@ export default function OrderMenu() {
             <h2 className="text-xl font-bold mb-2">📂 {selectedCategory}</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {menu[selectedCategory].map((item) => {
-                const key = `${item.name}-${selectedType}-${ordered.packed}`;
-                const ordered = order[key] || {};
                 const isDrink = selectedCategory.startsWith("饮料");
+                const selectedType = "hot";
+                const tempKey = `${item.name}-${selectedType}-false`;
+                const ordered = order[tempKey] || {};
+                const packed = ordered.packed ?? false;
+                const key = `${item.name}-${selectedType}-${packed}`;
                 const hotPrice = Number(item.hotPrice ?? item.price ?? 0);
                 const coldPrice = Number(item.coldPrice ?? item.price ?? 0);
-
-                const selectedType = ordered.type || (isDrink ? "hot" : "standard");
                 const basePrice = selectedType === "cold" ? coldPrice : hotPrice;
                 const packedFee = isDrink && ordered.packed ? 0.2 : 0;
                 const totalPrice = basePrice + packedFee;
