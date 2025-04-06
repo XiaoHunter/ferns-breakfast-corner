@@ -44,30 +44,43 @@ export default function OrderMenu() {
       });
   }, []);
 
-  const updateQty = (item, delta = 0, type = "hot", packed = false) => {
+  const updateOptions = (item, newType = null, newPacked = null) => {
     const key = item.name;
     setOrder((prev) => {
-      const combos = prev[key] || [];
-      const idx = combos.findIndex((c) => c.type === type && c.packed === packed);
-      const updatedCombos = [...combos];
+      const updated = { ...(prev[key] || {}) };
 
-      if (idx !== -1) {
-        // 组合已存在，更新数量
-        const newQty = updatedCombos[idx].qty + delta;
-        if (newQty <= 0) {
-          updatedCombos.splice(idx, 1);
-        } else {
-          updatedCombos[idx].qty = newQty;
-        }
-      } else {
-        // 新组合（自动加 1）
-        if (delta <= 0) delta = 1;
-        updatedCombos.push({ qty: delta, type, packed });
+      if (!updated.qty) {
+        // 不自动加 qty，只是更新类型
+        updated.qty = 0;
+      }
+
+      if (newType !== null) updated.type = newType;
+      if (newPacked !== null) updated.packed = newPacked;
+
+      return { ...prev, [key]: updated };
+    });
+  };
+
+  const updateQty = (item, delta = 1) => {
+    const key = item.name;
+    setOrder((prev) => {
+      const existing = prev[key] || {};
+      const qty = (existing.qty || 0) + delta;
+
+      if (qty <= 0) {
+        const { [key]: _, ...rest } = prev;
+        return rest;
       }
 
       return {
         ...prev,
-        [key]: updatedCombos.length > 0 ? updatedCombos : undefined,
+        [key]: {
+          ...existing,
+          name: item.name,
+          qty,
+          type: existing.type || "hot",
+          packed: existing.packed || false,
+        },
       };
     });
   };
@@ -219,13 +232,13 @@ export default function OrderMenu() {
                     {isDrink && (
                       <div className="mt-2 flex flex-wrap gap-2 text-sm items-center">
                         <button
-                          onClick={() => updateQty(item, 0, "hot", ordered.packed)}
+                          onClick={() => updateOptions(item, "hot")}
                           className={`px-2 py-1 rounded border ${selectedType === "hot" ? "bg-yellow-300" : "bg-white"}`}
                         >
                           热 (Hot)
                         </button>
                         <button
-                          onClick={() => updateQty(item, 0, "cold", ordered.packed)}
+                          onClick={() => updateOptions(item, "cold")}
                           className={`px-2 py-1 rounded border ${selectedType === "cold" ? "bg-yellow-300" : "bg-white"}`}
                         >
                           冷 (Cold)
@@ -234,7 +247,7 @@ export default function OrderMenu() {
                           <input
                             type="checkbox"
                             checked={!!ordered.packed}
-                            onChange={() => updateQty(item, 0, selectedType, !ordered.packed)}
+                            onChange={(e) => updateOptions(item, null, e.target.checked)}
                           />
                           <span>打包 (Takeaway)</span>
                         </label>
