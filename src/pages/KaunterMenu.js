@@ -55,7 +55,13 @@ const KaunterMenu = () => {
     `);
 
     printWindow.document.close();
-    printWindow.print();
+    printWindow.onload = () => {
+      printWindow.focus();
+      printWindow.print();
+      setTimeout(() => {
+        printWindow.close();
+      }, 500);
+    };
   };
 
   const lastOrderIdRef = useRef(0);
