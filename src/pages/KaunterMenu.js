@@ -73,9 +73,17 @@ const KaunterMenu = () => {
         .then(res => res.json())
         .then((data) => {
           const latest = [...data].sort((a, b) => b.orderId - a.orderId)[0];
-          if (latest?.orderId > lastOrderIdRef.current) {
+          if (!latest.printRef && latest.orderId > lastOrderIdRef.current) {
             lastOrderIdRef.current = latest.orderId;
             printOrder(latest); // 👈 自动打印
+            fetch("https://ferns-breakfast-corner.com/api/mark-order-printed.php", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                date: selectedDate,
+                orderId: latest.orderId
+              })
+            });
           }
           setOrders(data.reverse());
         })
