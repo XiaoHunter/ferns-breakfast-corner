@@ -74,7 +74,7 @@ export default function OrderMenu() {
           type,
           packed,
           addons,
-          qty,
+          qty
         }
       };
     });
@@ -328,7 +328,7 @@ export default function OrderMenu() {
           <ul className="mb-2">
             {Object.values(order).map((item, idx) => (
               <li key={idx}>
-                {item.name} - {(typeof item.type === "string" ? item.type : "standard").toUpperCase()}
+                {item.name} - {(item.type ?? "standard").toUpperCase()}
                 {item.packed && "（Takeaway）"}
                 {item.addons?.length > 0 && <> + {item.addons.map((a) => a.name).join(", ")}</>} x {item.qty}
               </li>
