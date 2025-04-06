@@ -52,68 +52,37 @@ const KaunterMenu = () => {
   };
 
   const printReceipt = (order) => {
-    const formatLine = (name, qty, price) => {
-      const nameStr = name.length > 18 ? name.slice(0, 18) : name.padEnd(18, " ");
-      const qtyStr = qty.toString().padStart(3, " ");
-      const priceStr = price.toFixed(2).padStart(7, " ");
-      return `${nameStr} ${qtyStr} ${priceStr}`;
-    };
+    const w = window.open("", "PRINT", "height=600,width=400");
+    w.document.write(`<html><head><title>Receipt</title>
+      <style>
+        body { font-family: monospace; width: 58mm; }
+        h2, p, li { margin: 0; padding: 2px 0; }
+        ul { padding-left: 0; list-style: none; }
+        hr { margin: 6px 0; border: none; border-top: 1px dashed #000; }
+      </style>
+    </head><body>`);
 
-    const lines = order.items
-      .filter(item => item.qty > 0)
-      .map(item => {
-        let name = item.name;
-        if (item.packed) name += " (Packed)";
-        if (item.flavor) name += ` (${item.flavor})`;
-        if (item.noodle) name += ` (${item.noodle})`;
+    w.document.write(`<h2>FERNS BREAKFAST CORNER</h2>`);
+    w.document.write(`<p>日期: ${formatMalaysiaTime(order.time)}</p>`);
+    w.document.write(`<p>订单: ${order.orderId}</p>`);
+    w.document.write(`<p>桌号: ${order.table || order.deviceId}</p><hr/>`);
 
-        const unitPrice = item.unitPrice ?? (order.total > 0 && item.qty > 0 ? order.total / item.qty : 0);
-        const price = item.qty * unitPrice;
-
-        return formatLine(name, item.qty, price);
-      });
-      
-    const html = `
-    <html><head><title>Receipt</title>
-    <style>
-      @page { size: 58mm auto; margin: 0; }
-      body {
-        font-family: monospace;
-        width: 58mm;
-        margin: 0;
-        font-size: 12px;
+    order.items.forEach(item => {
+      if (item.qty > 0) {
+        w.document.write(`<p>${item.name} x ${item.qty}</p>`);
       }
-      h2, p { text-align: center; margin: 4px 0; }
-      pre { margin: 0; }
-      hr { border: none; border-top: 1px dashed #000; margin: 6px 0; }
-    </style>
-    </head><body>
-      <h2>FERNS BREAKFAST CORNER</h2>
-      <p>Order No: ${order.orderId}</p>
-      <p>Table: ${order.table || order.deviceId}</p>
-      <p>Date: ${formatMalaysiaTime(order.time)}</p>
-      <hr/>
-      <pre>Item               Qty  Price</pre>
-      <hr/>
-      <pre>${lines.join("\n")}</pre>
-      <hr/>
-      <pre>Subtotal:          RM ${order.total.toFixed(2).padStart(5, " ")}</pre>
-      ${order.payment ? `<pre>Payment:           ${order.payment}</pre>` : ""}
-      <hr/>
-      <p>Thank You & Come Again!</p>
-    </body></html>
-    `;
+    });
 
-    if (typeof iminjs !== "undefined" && typeof iminjs.printHtml === "function") {
-      iminjs.printHtml(html, (res) => console.log("✅ iMin print done", res));
-    } else {
-      const w = window.open("", "PRINT", "height=600,width=400");
-      w.document.write(html);
-      w.document.close();
-      w.focus();
-      w.print();
-      w.close();
+    w.document.write(`<hr/><p><strong>总计: RM ${order.total.toFixed(2)}</strong></p>`);
+    if (order.payment) {
+      w.document.write(`<p>付款方式: ${order.payment}</p>`);
     }
+    w.document.write(`<p>谢谢惠顾！</p>`);
+    w.document.write(`</body></html>`);
+    w.document.close();
+    w.focus();
+    w.print();
+    w.close();
   };
 
   const updateSingleOrder = (order) => {
