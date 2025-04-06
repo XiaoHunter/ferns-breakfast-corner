@@ -117,7 +117,7 @@ export default function OrderMenu() {
   if (selectingTable) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-yellow-100 relative text-center">
-        <img src="/ferns-logo.png" alt="Logo" className="absolute opacity-10 top-10 w-full max-w-md mx-auto" />
+        <img src="/ferns-logo.png" alt="Logo"  className="absolute top-10 w-full max-w-md mx-auto" />
         <h1 className="text-2xl font-bold text-yellow-900 z-10 mb-6">☕ Ferns Breakfast Corner</h1>
         <h2 className="text-xl z-10 mb-2">🪑 请选择桌号</h2>
         <select
@@ -146,7 +146,7 @@ export default function OrderMenu() {
       <div className="grid grid-cols-2 gap-2">
         {menu.map((item, index) => (
           <button key={index} onClick={() => addToOrder(item)} className="border p-2 rounded shadow">
-            {item.name} <br /> RM {item.price.toFixed(2)}
+            {item.name} <br /> RM {(order.total ?? 0).toFixed(2)}
           </button>
         ))}
       </div>
