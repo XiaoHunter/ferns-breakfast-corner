@@ -58,7 +58,7 @@ const OrderMenu = () => {
       paidAmount: total,
       change: 0
     };
-    fetch("/api/send-order.php", {
+    fetch("https://ferns-breakfast-corner.com/api/send-order.php", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(orderData),
@@ -106,35 +106,6 @@ const OrderMenu = () => {
   return (
     <div className="p-4">
       <button onClick={startNewOrder} className="bg-green-600 text-white px-4 py-2 rounded mb-4">➕ 新订单</button>
-      {selectingTable && (
-        <div className="mb-4">
-          <label htmlFor="table" className="mr-2">🪑 选择桌号：</label>
-          <select id="table" onChange={confirmTable} className="border px-2 py-1">
-            <option value="">-- 选择桌号 --</option>
-            {Array.from({ length: 12 }, (_, i) => (
-              <option key={i + 1} value={i + 1}>Table {i + 1}</option>
-            ))}
-          </select>
-        </div>
-      )}
-      <h2 className="text-lg font-bold mb-2">饮料菜单</h2>
-      <div className="grid grid-cols-2 gap-2">
-        {menu.map((item, i) => (
-          <button key={i} onClick={() => addToOrder(item)} className="border p-2 rounded shadow">
-            {item.name} <br />RM {item.price.toFixed(2)}
-          </button>
-        ))}
-      </div>
-
-      <div className="mt-6">
-        <h3 className="font-bold mb-2">🛒 当前订单</h3>
-        <ul>
-          {orderItems.map((item, i) => (
-            <li key={i}>{item.name} x {item.qty}</li>
-          ))}
-        </ul>
-        <button onClick={requestBill} className="mt-4 bg-blue-600 text-white px-4 py-2 rounded">🧾 请求账单</button>
-      </div>
       {showTableSelect && (
         <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded shadow w-80">
@@ -156,6 +127,24 @@ const OrderMenu = () => {
           </div>
         </div>
       )}
+      <h2 className="text-lg font-bold mb-2">饮料菜单</h2>
+      <div className="grid grid-cols-2 gap-2">
+        {menu.map((item, i) => (
+          <button key={i} onClick={() => addToOrder(item)} className="border p-2 rounded shadow">
+            {item.name} <br />RM {item.price.toFixed(2)}
+          </button>
+        ))}
+      </div>
+
+      <div className="mt-6">
+        <h3 className="font-bold mb-2">🛒 当前订单</h3>
+        <ul>
+          {orderItems.map((item, i) => (
+            <li key={i}>{item.name} x {item.qty}</li>
+          ))}
+        </ul>
+        <button onClick={requestBill} className="mt-4 bg-blue-600 text-white px-4 py-2 rounded">🧾 请求账单</button>
+      </div>
     </div>
   );
 };

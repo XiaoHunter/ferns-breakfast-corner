@@ -25,7 +25,7 @@ const KaunterMenu = () => {
   }, [token, selectedDate]);
 
   const login = () => {
-    fetch("/api/kaunter-login.php", {
+    fetch("https://ferns-breakfast-corner.com/api/kaunter-login.php", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ password: input }),
