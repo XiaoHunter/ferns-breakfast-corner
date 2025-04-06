@@ -140,9 +140,6 @@ const KaunterMenu = () => {
               />
               <span>找零: RM {change}</span>
             </div>
-            <div className="mt-2">
-              <Button onClick={() => printReceipt(order)}>🖨️ 打印收据</Button>
-            </div>
           </div>
         );
       })}
