@@ -48,18 +48,24 @@ export default function OrderMenu() {
     const key = item.name;
     setOrder((prev) => {
       const existing = prev[key] || {};
-      const qty = (existing.qty || 0) + delta;
+      const newQty = (existing.qty || 0) + delta;
+
+      // 如果 qty 是 0，但用户要选冷热/打包，就强制 newQty 为 1
+      const isInitialSelection = delta === 0 && (!existing.qty || existing.qty === 0);
+      const qty = isInitialSelection ? 1 : newQty;
+
       if (qty <= 0) {
         const { [key]: _, ...rest } = prev;
         return rest;
       }
+
       return {
         ...prev,
         [key]: {
           name: item.name,
           qty,
-          type: type ?? existing.type,
-          packed: packed ?? existing.packed,
+          type: type ?? existing.type ?? "hot",   // 默认 hot
+          packed: packed ?? existing.packed ?? false,
         },
       };
     });
