@@ -1,10 +1,10 @@
 import React, { useEffect, useState , useRef } from "react";
-import menu from "https://ferns-breakfast-corner.com/menu/orders-items.json";
 
 const KaunterMenu = () => {
   const [token, setToken] = useState(null);
   const [input, setInput] = useState("");
   const [orders, setOrders] = useState([]);
+  const [menu, setMenu] = useState([]);
   const [selectedDate, setSelectedDate] = useState(getMalaysiaToday());
 
   function getMalaysiaToday() {
@@ -12,6 +12,13 @@ const KaunterMenu = () => {
     const malaysiaTime = new Date(now.getTime() + 8 * 60 * 60 * 1000);
     return malaysiaTime.toISOString().split("T")[0];
   }
+
+  useEffect(() => {
+    fetch("https://ferns-breakfast-corner.com/menu/orders-items.json")
+      .then(res => res.json())
+      .then(setMenu)
+      .catch(() => setMenu([])); // 避免崩溃
+  }, []);
 
   const printOrder = (order) => {
     const printWindow = window.open("", "_blank", "width=400,height=600");
