@@ -66,10 +66,13 @@ const KaunterMenu = () => {
         if (item.packed) name += " (Packed)";
         if (item.flavor) name += ` (${item.flavor})`;
         if (item.noodle) name += ` (${item.noodle})`;
-        return formatLine(name, item.qty, item.qty * item.unitPrice);
+
+        const unitPrice = item.unitPrice ?? (order.total > 0 && item.qty > 0 ? order.total / item.qty : 0);
+        const price = item.qty * unitPrice;
+
+        return formatLine(name, item.qty, price);
       });
-
-
+      
     const html = `
     <html><head><title>Receipt</title>
     <style>
