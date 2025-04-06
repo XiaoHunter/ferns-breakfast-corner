@@ -281,13 +281,13 @@ export default function OrderMenu() {
         <div className="mt-10 p-4 bg-white rounded shadow">
           <h2 className="text-xl font-semibold mb-2">🧾 Current Order</h2>
           <ul className="mb-2">
-            {Object.entries(order).map(([name, combos]) =>
-              combos.map((combo, idx) => (
-                <li key={`${name}-${idx}`}>
-                  {name} ({combo.type === "hot" ? "热" : "冷"}{combo.packed ? " + 打包" : ""}) × {combo.qty}
-                </li>
-              ))
-            )}
+            {Object.entries(order).map(([key, item]) => (
+              <li key={key}>
+                {item.name}
+                {item.type === "cold" ? "（冷）" : item.type === "hot" ? "（热）" : ""}
+                {item.packed ? " + 打包" : ""} x {item.qty}
+              </li>
+            ))}
           </ul>
           <h2 className="text-lg font-bold">Total: RM {getTotal()}</h2>
           <div className="mt-2 flex gap-4">
