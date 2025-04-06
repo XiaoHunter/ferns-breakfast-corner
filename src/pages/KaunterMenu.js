@@ -84,9 +84,13 @@ const KaunterMenu = () => {
         <p>饮料：</p>
         <table>${items}</table>
         <script>
-          window.onload = function() {
-            window.print();
-            setTimeout(() => window.close(), 3000); // 自动关闭打印窗口
+          window.onload = function () {
+            setTimeout(() => {
+              window.print();
+
+              // 打印后再等待 3 秒关闭窗口
+              setTimeout(() => window.close(), 3000);
+            }, 2000); // 延迟 2 秒才执行 print
           };
         </script>
       </body></html>
