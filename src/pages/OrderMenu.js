@@ -62,8 +62,12 @@ export default function OrderMenu() {
 
       return { 
         ...prev, 
-        [key]: { ...existing, type, packed }，
-       };
+        [key]: { 
+          ...existing, 
+          type, 
+          packed,
+        },
+      };
     });
   };
 
