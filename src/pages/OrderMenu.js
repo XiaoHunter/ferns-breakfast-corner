@@ -15,14 +15,6 @@ export default function OrderMenu() {
   const [selectedTable, setSelectedTable] = useState("");
   const [tableNo, setTableNo] = useState("");
 
-  const deviceId = useMemo(() => {
-    const stored = localStorage.getItem("deviceId");
-    if (stored) return stored;
-    const newId = "device-" + Math.random().toString(36).substring(2, 8);
-    localStorage.setItem("deviceId", newId);
-    return newId;
-  }, []);
-
   const confirmTableSelection = () => {
     if (!selectedTable) return alert("⚠️ Please select a table number");
     setTableNo(selectedTable);
@@ -146,7 +138,6 @@ export default function OrderMenu() {
     }));
 
     const data = {
-      deviceId,
       items,
       total: getTotal(),
       time: new Date().toISOString(),
