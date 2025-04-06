@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
 
 const KaunterMenu = () => {
   const [token, setToken] = useState(null);
@@ -6,6 +7,7 @@ const KaunterMenu = () => {
   const [orders, setOrders] = useState([]);
   const [editingTable, setEditingTable] = useState(null);
   const [tableInputs, setTableInputs] = useState({});
+  const [cashInput, setCashInput] = useState({});
   
   const getMalaysiaToday = () => {
     const now = new Date();
@@ -52,68 +54,37 @@ const KaunterMenu = () => {
   };
 
   const printReceipt = (order) => {
-    const newWindow = window.open("", "_blank", "width=400,height=600");
-    if (!newWindow) return;
-
-    const total = order.total?.toFixed(2) || "0.00";
-    const time = formatMalaysiaTime(order.time);
-
-    const items = order.items
-      .map(
-        (item) =>
-          `<tr><td colspan="2">${item.name}</td></tr>
-           <tr><td>x ${item.qty}</td><td style="text-align:right">RM ${(item.price || 0).toFixed(2)}</td></tr>`
-      )
-      .join("");
-
-    newWindow.document.write(`
-      <html>
-      <head>
-        <style>
-          body { font-family: Arial; font-size: 12px; padding: 10px; }
-          img { display: block; margin: 0 auto 10px; width: 80px; }
-          h2, p { text-align: center; margin: 0; }
-          table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-          td { padding: 2px 0; }
-          hr { border: none; border-top: 1px dashed #000; margin: 10px 0; }
-          .center { text-align: center; margin-top: 10px; }
-        </style>
-      </head>
-      <body>
-        <img src="/ferns-logo.png" alt="Fern's Kafe" />
-        <h2>KAFE FERN'S</h2>
-        <p>桌号: ${order.table || order.deviceId}</p>
-        <p>时间: ${time}</p>
+    const printContent = `
+      <html><head><title>Receipt</title>
+      <style>
+        body { font-family: monospace; font-size: 12px; width: 58mm; }
+        h2, p, li { margin: 0; padding: 2px 0; text-align: center; }
+        ul { list-style: none; padding: 0; }
+        hr { border: none; border-top: 1px dashed #000; margin: 6px 0; }
+      </style>
+      </head><body>
+        <h2>FERNS BREAKFAST CORNER</h2>
+        <p>订单: ${order.orderId}</p>
+        <p>时间: ${new Date(order.time).toLocaleString("en-MY")}</p>
         <hr />
-        <table>${items}</table>
+        <ul>
+          ${order.items.map(i => `<li>${i.name} x ${i.qty}</li>`).join('')}
+        </ul>
         <hr />
-        <table>
-          <tr><td>总计:</td><td style="text-align:right">RM ${total}</td></tr>
-        </table>
-        <div class="center">谢谢光临，欢迎再次光临！</div>
-      </body>
-      </html>
-    `);
-    newWindow.document.close();
-    newWindow.print();
+        <p>总计: RM ${order.total.toFixed(2)}</p>
+        <p>付款方式: ${order.payment}</p>
+        <p>谢谢惠顾！</p>
+      </body></html>
+    `;
+
+    const printWindow = document.createElement("iframe");
+    printWindow.style.display = "none";
+    document.body.appendChild(printWindow);
+    printWindow.contentDocument.write(printContent);
+    printWindow.contentDocument.close();
+    printWindow.contentWindow.focus();
+    printWindow.contentWindow.print();
   };
-
-  return (
-    <div className="p-4">
-      <h2 className="text-lg font-bold mb-4">📜 Kaunter Order List</h2>
-      {orders.map((order) => (
-        <div key={order.orderId} className="border p-3 mb-4 rounded shadow">
-          <div><strong>订单编号:</strong> {order.orderId}</div>
-          <div><strong>Table:</strong> {order.table || order.deviceId}</div>
-          <div><strong>时间:</strong> {formatMalaysiaTime(order.time)}</div>
-          <div><strong>总价:</strong> RM {order.total?.toFixed(2)}</div>
-          <div className="mt-2">
-            <Button onClick={() => printReceipt(order)}>🖨️ 打印收据</Button>
-          </div>
-        </div>
-      ))}
-    </div>
-  );
 
   const updateSingleOrder = (order) => {
     fetch("https://ferns-breakfast-corner.com/api/update-order.php", {
@@ -140,6 +111,44 @@ const KaunterMenu = () => {
       status: "completed",
       payment: method
     };
+
+    const handleCashChange = (orderId, value) => {
+    setCashInput(prev => ({ ...prev, [orderId]: value }));
+  };
+
+  return (
+    <div className="p-4">
+      <h2 className="text-lg font-bold mb-4">📜 Kaunter Order List</h2>
+      {orders.map((order) => {
+        const total = order.total || 0;
+        const cash = parseFloat(cashInput[order.orderId]) || 0;
+        const change = cash >= total ? (cash - total).toFixed(2) : "0.00";
+
+        return (
+          <div key={order.orderId} className="border p-3 mb-4 rounded shadow">
+            <div><strong>订单编号:</strong> {order.orderId}</div>
+            <div><strong>Table:</strong> {order.table || order.deviceId}</div>
+            <div><strong>时间:</strong> {formatMalaysiaTime(order.time)}</div>
+            <div><strong>总价:</strong> RM {total.toFixed(2)}</div>
+            <div className="mt-2">
+              <label>💵 现金付款: </label>
+              <input
+                type="number"
+                placeholder="输入客户付款金额"
+                value={cashInput[order.orderId] || ""}
+                onChange={(e) => handleCashChange(order.orderId, e.target.value)}
+                className="border px-2 mx-2"
+              />
+              <span>找零: RM {change}</span>
+            </div>
+            <div className="mt-2">
+              <Button onClick={() => printReceipt(order)}>🖨️ 打印收据</Button>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
 
     updateSingleOrder(updatedOrder);
 
