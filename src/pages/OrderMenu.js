@@ -47,21 +47,19 @@ export default function OrderMenu() {
   const updateQty = (item, delta = 0, type = null, packed = null) => {
     const key = item.name;
     setOrder((prev) => {
-      const current = prev[key] || { name: item.name, qty: 0 };
-
-      const newQty = current.qty + delta;
-      if (newQty <= 0) {
+      const existing = prev[key] || {};
+      const qty = (existing.qty || 0) + delta;
+      if (qty <= 0) {
         const { [key]: _, ...rest } = prev;
         return rest;
       }
-
       return {
         ...prev,
         [key]: {
-          ...current,
-          qty: delta === 0 ? current.qty : newQty, // 不更改数量时保留原数
-          type: type ?? current.type ?? "hot",
-          packed: packed !== null ? packed : current.packed || false,
+          name: item.name,
+          qty,
+          type: type ?? existing.type,
+          packed: packed ?? existing.packed,
         },
       };
     });
@@ -189,19 +187,20 @@ export default function OrderMenu() {
               {menu[selectedCategory].map((item) => {
                 const ordered = order[item.name] || {};
                 const isDrink = selectedCategory.startsWith("饮料");
-                const hotPrice = item.hotPrice ?? item.price ?? 0;
-                const coldPrice = item.coldPrice ?? item.price ?? 0;
+                const hotPrice = Number(item.hotPrice ?? item.price ?? 0);
+                const coldPrice = Number(item.coldPrice ?? item.price ?? 0);
 
                 const selectedType = ordered.type || (isDrink ? "hot" : "standard");
                 const basePrice = selectedType === "cold" ? coldPrice : hotPrice;
                 const packedFee = isDrink && ordered.packed ? 0.2 : 0;
-                const totalPrice = Number(basePrice) + packedFee;
+                const totalPrice = basePrice + packedFee;
 
                 return (
                   <div key={item.name} className="bg-white p-4 rounded shadow">
                     <h2 className="font-semibold text-lg">
-                      {item.chineseName}{item.name}
+                      {item.chineseName} {item.name}
                     </h2>
+
                     <p>
                       RM {totalPrice.toFixed(2)}{" "}
                       {isDrink && (
@@ -211,18 +210,18 @@ export default function OrderMenu() {
                       )}
                     </p>
 
-                    {/* 饮料选项 */}
+                    {/* 饮料类型选择 */}
                     {isDrink && (
-                      <div className="mt-2 flex flex-wrap gap-2 text-sm">
+                      <div className="mt-2 flex flex-wrap gap-2 text-sm items-center">
                         <button
-                          onClick={() => updateQty(item, 0, "hot")}
-                          className={`px-2 py-1 rounded border ${selectedType === "hot" ? "bg-yellow-300" : ""}`}
+                          onClick={() => updateQty(item, 0, "hot", ordered.packed)}
+                          className={`px-2 py-1 rounded border ${selectedType === "hot" ? "bg-yellow-300" : "bg-white"}`}
                         >
                           热 (Hot)
                         </button>
                         <button
-                          onClick={() => updateQty(item, 0, "cold")}
-                          className={`px-2 py-1 rounded border ${selectedType === "cold" ? "bg-yellow-300" : ""}`}
+                          onClick={() => updateQty(item, 0, "cold", ordered.packed)}
+                          className={`px-2 py-1 rounded border ${selectedType === "cold" ? "bg-yellow-300" : "bg-white"}`}
                         >
                           冷 (Cold)
                         </button>
@@ -238,10 +237,20 @@ export default function OrderMenu() {
                     )}
 
                     {/* 数量控制 */}
-                    <div className="flex gap-2 mt-2">
-                      <button className="px-3 py-1 bg-gray-300 rounded" onClick={() => updateQty(item, -1)}>➖</button>
+                    <div className="flex gap-2 mt-2 items-center">
+                      <button
+                        className="px-3 py-1 bg-gray-300 rounded"
+                        onClick={() => updateQty(item, -1)}
+                      >
+                        ➖
+                      </button>
                       <span>{ordered.qty || 0}</span>
-                      <button className="px-3 py-1 bg-green-400 rounded" onClick={() => updateQty(item, 1)}>➕</button>
+                      <button
+                        className="px-3 py-1 bg-green-400 rounded"
+                        onClick={() => updateQty(item, 1)}
+                      >
+                        ➕
+                      </button>
                     </div>
                   </div>
                 );
@@ -256,7 +265,9 @@ export default function OrderMenu() {
           <ul className="mb-2">
             {Object.values(order).map((item, idx) => (
               <li key={idx}>
-                {item.name} x {item.qty}
+                {item.name}
+                {item.type === "cold" ? " (Cold)" : item.type === "hot" ? " (Hot)" : ""}
+                {item.packed ? " (Takeaway)" : ""} x {item.qty}
               </li>
             ))}
           </ul>
