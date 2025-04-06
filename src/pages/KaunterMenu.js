@@ -86,7 +86,7 @@ const KaunterMenu = () => {
         <script>
           window.onload = function() {
             window.print();
-            setTimeout(() => window.close(), 500); // 自动关闭打印窗口
+            setTimeout(() => window.close(), 3000); // 自动关闭打印窗口
           };
         </script>
       </body></html>
