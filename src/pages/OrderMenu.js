@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 
 export default function OrderMenu() {
   const navigate = useNavigate();
+  navigate("/ordermenu"); 
   const [menu, setMenu] = useState({});
   const [selectedCategory, setSelectedCategory] = useState("");
   const [order, setOrder] = useState({});
