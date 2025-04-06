@@ -45,9 +45,12 @@ export default function OrderMenu() {
   }, []);
 
   const updateOptions = (item, newType = null, newPacked = null) => {
-    const key = item.name;
+    const type = newType ?? item.type ?? "hot";
+    const packed = newPacked ?? item.packed ?? false;
+    const key = `${item.name}-${type}-${packed}`;
+
     setOrder((prev) => {
-      const updated = { ...(prev[key] || {}) };
+      const updated = prev[key] || { name: item.name, qty: 0 };
 
       if (!updated.qty) {
         // 不自动加 qty，只是更新类型
@@ -57,14 +60,20 @@ export default function OrderMenu() {
       if (newType !== null) updated.type = newType;
       if (newPacked !== null) updated.packed = newPacked;
 
-      return { ...prev, [key]: updated };
+      return { 
+        ...prev, 
+        [key]: { ...existing, type, packed }，
+       };
     });
   };
 
   const updateQty = (item, delta = 1) => {
-    const key = item.name;
+    const type = item.type || "hot"; // fallback
+    const packed = item.packed || false;
+    const key = `${item.name}-${type}-${packed}`;
+
     setOrder((prev) => {
-      const existing = prev[key] || {};
+      const existing = prev[key] || { name: item.name, type, packed, qty: 0 };
       const qty = (existing.qty || 0) + delta;
 
       if (qty <= 0) {
@@ -203,7 +212,8 @@ export default function OrderMenu() {
             <h2 className="text-xl font-bold mb-2">📂 {selectedCategory}</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {menu[selectedCategory].map((item) => {
-                const ordered = order[item.name] || {};
+                const key = `${item.name}-${selectedType}-${ordered.packed}`;
+                const ordered = order[key] || {};
                 const isDrink = selectedCategory.startsWith("饮料");
                 const hotPrice = Number(item.hotPrice ?? item.price ?? 0);
                 const coldPrice = Number(item.coldPrice ?? item.price ?? 0);
@@ -232,13 +242,13 @@ export default function OrderMenu() {
                     {isDrink && (
                       <div className="mt-2 flex flex-wrap gap-2 text-sm items-center">
                         <button
-                          onClick={() => updateOptions(item, "hot")}
+                          onClick={() => updateOptions({ ...item, type: "hot", packed: ordered.packed })}
                           className={`px-2 py-1 rounded border ${selectedType === "hot" ? "bg-yellow-300" : "bg-white"}`}
                         >
                           热 (Hot)
                         </button>
                         <button
-                          onClick={() => updateOptions(item, "cold")}
+                          onClick={() => updateOptions({ ...item, type: "cold", packed: ordered.packed })}
                           className={`px-2 py-1 rounded border ${selectedType === "cold" ? "bg-yellow-300" : "bg-white"}`}
                         >
                           冷 (Cold)
@@ -247,7 +257,7 @@ export default function OrderMenu() {
                           <input
                             type="checkbox"
                             checked={!!ordered.packed}
-                            onChange={(e) => updateOptions(item, null, e.target.checked)}
+                            onChange={(e) => updateOptions({ ...item, type: selectedType, packed: e.target.checked })}
                           />
                           <span>打包 (Takeaway)</span>
                         </label>
