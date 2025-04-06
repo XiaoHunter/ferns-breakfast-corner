@@ -44,8 +44,16 @@ const KaunterMenu = () => {
   };
 
   const getDailyTotal = () => {
-    const list = Array.isArray(orders) ? orders : [];
-    return list.reduce((sum, order) => sum + (order.total || 0), 0).toFixed(2);
+    const list = Array.isArray(orders)
+      ? orders
+      : Object.values(orders).filter(o => typeof o === "object");
+
+    const total = list.reduce((sum, order) => {
+      const value = parseFloat(order.total) || 0;
+      return sum + value;
+    }, 0);
+
+    return total.toFixed(2);
   };
 
   if (!token) {
