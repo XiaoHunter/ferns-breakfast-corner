@@ -44,20 +44,25 @@ export default function OrderMenu() {
       });
   }, []);
 
-  const updateQty = (item, delta) => {
+  const updateQty = (item, delta = 0, type = null, packed = null) => {
     const key = item.name;
     setOrder((prev) => {
-      const qty = (prev[key]?.qty || 0) + delta;
-      if (qty <= 0) {
+      const current = prev[key] || { name: item.name, qty: 0 };
+
+      const newQty = current.qty + delta;
+      if (newQty <= 0) {
         const { [key]: _, ...rest } = prev;
         return rest;
       }
+
       return {
         ...prev,
         [key]: {
-          name: item.name,
-          qty,
-        }
+          ...current,
+          qty: delta === 0 ? current.qty : newQty, // 不更改数量时保留原数
+          type: type ?? current.type ?? "hot",
+          packed: packed !== null ? packed : current.packed || false,
+        },
       };
     });
   };
@@ -201,7 +206,7 @@ export default function OrderMenu() {
                       RM {totalPrice.toFixed(2)}{" "}
                       {isDrink && (
                         <span className="text-sm text-gray-500">
-                          ({selectedType === "hot" ? "热 (Hot)" : "冷 (Cold)"}{ordered.packed ? " + 打包" : ""})
+                          ({selectedType === "hot" ? "热" : "冷"}{ordered.packed ? " + 打包" : ""})
                         </span>
                       )}
                     </p>
@@ -213,13 +218,13 @@ export default function OrderMenu() {
                           onClick={() => updateQty(item, 0, "hot")}
                           className={`px-2 py-1 rounded border ${selectedType === "hot" ? "bg-yellow-300" : ""}`}
                         >
-                          热
+                          热 (Hot)
                         </button>
                         <button
                           onClick={() => updateQty(item, 0, "cold")}
                           className={`px-2 py-1 rounded border ${selectedType === "cold" ? "bg-yellow-300" : ""}`}
                         >
-                          冷
+                          冷 (Cold)
                         </button>
                         <label className="flex items-center space-x-1">
                           <input
