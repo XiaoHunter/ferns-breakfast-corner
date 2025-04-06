@@ -16,8 +16,15 @@ const KaunterMenu = () => {
     if (!token) return;
     const fetchOrders = () => {
       fetch(`https://ferns-breakfast-corner.com/orders/orders-${selectedDate}.json?t=${Date.now()}`)
-        .then((res) => res.json())
-        .then((data) => setOrders(data.reverse()));
+        .then((res) => {
+          if (!res.ok) throw new Error("No order file found");
+          return res.json();
+        })
+        .then((data) => setOrders(data.reverse()))
+        .catch((err) => {
+          console.warn("🛑 订单档案加载失败：", err.message);
+          setOrders([]); // 清空 orders，代表今天没有订单
+        });
     };
     fetchOrders();
     const interval = setInterval(fetchOrders, 5000);
