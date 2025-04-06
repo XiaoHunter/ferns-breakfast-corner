@@ -1,8 +1,11 @@
 import React, { useEffect, useState, useRef, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 export default function OrderMenu() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  const tableNo = queryParams.get("table") || "";
   const [menu, setMenu] = useState({});
   const [selectedCategory, setSelectedCategory] = useState("");
   const [order, setOrder] = useState({});
@@ -11,15 +14,6 @@ export default function OrderMenu() {
   const [packedStatus, setPackedStatus] = useState({});
   const [addonsStatus, setAddonsStatus] = useState({});
   const [loading, setLoading] = useState(true);
-  const [selectingTable, setSelectingTable] = useState(true);
-  const [selectedTable, setSelectedTable] = useState("");
-  const [tableNo, setTableNo] = useState("");
-
-  const confirmTableSelection = () => {
-    if (!selectedTable) return alert("⚠️ Please select a table number");
-    setTableNo(selectedTable);
-    setSelectingTable(false);
-  };
 
   const getMalaysiaToday = () => {
     const now = new Date();
@@ -164,32 +158,6 @@ export default function OrderMenu() {
   };
 
   if (loading) return <div className="p-4">🕒 正在加载菜单...</div>;
-
-  if (selectingTable) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-yellow-100 relative text-center">
-        <img src="/ferns-logo.png" alt="Logo" className="absolute top-10 w-full max-w-md mx-auto" />
-        <h1 className="text-2xl font-bold text-yellow-900 z-10 mb-6">☕ Ferns Breakfast Corner</h1>
-        <h2 className="text-xl z-10 mb-2">🪑 Please select your table</h2>
-        <select
-          value={selectedTable}
-          onChange={(e) => setSelectedTable(e.target.value)}
-          className="p-2 border rounded mb-4 z-10 text-center"
-        >
-          <option value="">-- Select Table --</option>
-          {[...Array(12)].map((_, i) => (
-            <option key={i + 1} value={i + 1}>Table {i + 1}</option>
-          ))}
-        </select>
-        <button
-          onClick={confirmTableSelection}
-          className="bg-green-600 text-white px-4 py-2 rounded z-10"
-        >
-          Start Ordering
-        </button>
-      </div>
-    );
-  }
 
   return (
     <div className="flex min-h-screen">
