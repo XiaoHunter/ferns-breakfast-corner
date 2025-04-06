@@ -309,7 +309,7 @@ export default function OrderMenu() {
                         <span>{ordered?.qty || 0}</span>
                         <button
                           className="px-3 py-1 bg-green-400 rounded"
-                          onClick={() => updateQty(item, type, -1)}
+                          onClick={() => updateQty(item, type, 1)}
                         >
                           ➕
                         </button>
