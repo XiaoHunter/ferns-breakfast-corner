@@ -82,13 +82,22 @@ const KaunterMenu = () => {
         <p>时间: ${time}</p>
         <p>总价: RM ${total}</p>
         <p>饮料：</p>
-        <ul>${items}</ul>
+        <table>${items}</table>
+        <script>
+          window.onload = function() {
+            window.print();
+            setTimeout(() => window.close(), 500); // 自动关闭打印窗口
+          };
+        </script>
       </body></html>
     `;
 
     printWindow.document.write(html);
     printWindow.document.close();
     printWindow.print();
+    useEffect(() => {
+      window.print();
+    }, []);
   };
 
   const lastOrderIdRef = useRef(0);
