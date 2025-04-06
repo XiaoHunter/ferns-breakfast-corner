@@ -31,7 +31,7 @@ const KaunterMenu = () => {
       const addonTotal = (item.addons || []).reduce((s, a) => s + a.price, 0);
       const packedFee = item.packed ? 0.2 : 0;
       const comboTotal = ((basePrice + addonTotal + packedFee) * item.qty).toFixed(2);
-      
+
       return `
         <tr><td colspan="2">🍹 ${item.name} - ${typeLabel}${packedLabel}${addonLabel}</td></tr>
         <tr><td>x ${item.qty}</td><td style="text-align:right">RM ${comboTotal}</td></tr>
@@ -58,6 +58,8 @@ const KaunterMenu = () => {
     printWindow.print();
   };
 
+  const lastOrderIdRef = useRef(0);
+
   useEffect(() => {
     if (!token) return;
     const fetchOrders = () => {
@@ -65,8 +67,8 @@ const KaunterMenu = () => {
         .then(res => res.json())
         .then((data) => {
           const latest = [...data].sort((a, b) => b.orderId - a.orderId)[0];
-          if (latest?.orderId > lastOrderId) {
-            lastOrderId = latest.orderId;
+          if (latest?.orderId > lastOrderIdRef.current) {
+            lastOrderIdRef.current = latest.orderId;
             printOrder(latest); // 👈 自动打印
           }
           setOrders(data.reverse());
