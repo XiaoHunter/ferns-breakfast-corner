@@ -64,6 +64,7 @@ export default function OrderMenu() {
 
   const getTotal = () => {
     let sum = 0;
+
     const flatMenu = Object.entries(menu).flatMap(([cat, items]) =>
       items.map((item) => ({ ...item, category: cat }))
     );
@@ -71,8 +72,20 @@ export default function OrderMenu() {
     for (const item of Object.values(order)) {
       const matched = flatMenu.find((d) => d.name === item.name);
       if (!matched) continue;
-      const basePrice = Number(matched.price ?? 0);
-      sum += item.qty * basePrice;
+
+      // 🧊 区分冷/热价钱
+      const basePrice =
+        item.type === "cold"
+          ? Number(matched.coldPrice ?? matched.price ?? 0)
+          : item.type === "hot"
+          ? Number(matched.hotPrice ?? matched.price ?? 0)
+          : Number(matched.price ?? 0);
+
+      const isDrinkCategory = matched.category && matched.category.startsWith("饮料");
+      const packedFee = isDrinkCategory && item.packed ? 0.2 : 0;
+      const addonTotal = (item.addons || []).reduce((sum, addon) => sum + addon.price, 0);
+
+      sum += item.qty * (basePrice + packedFee + addonTotal);
     }
 
     return sum.toFixed(2);
@@ -117,7 +130,7 @@ export default function OrderMenu() {
   if (selectingTable) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-yellow-100 relative text-center">
-        <img src="/ferns-logo.png" alt="Logo" className="absolute opacity-10 top-10 w-full max-w-md mx-auto" />
+        <img src="/ferns-logo.png" alt="Logo" className="absolute top-10 w-full max-w-md mx-auto" />
         <h1 className="text-2xl font-bold text-yellow-900 z-10 mb-6">☕ Ferns Breakfast Corner</h1>
         <h2 className="text-xl z-10 mb-2">🪑 Please select your table</h2>
         <select
