@@ -98,23 +98,6 @@ const KaunterMenu = () => {
     newWindow.print();
   };
 
-  return (
-    <div className="p-4">
-      <h2 className="text-lg font-bold mb-4">📜 Kaunter Order List</h2>
-      {orders.map((order) => (
-        <div key={order.orderId} className="border p-3 mb-4 rounded shadow">
-          <div><strong>订单编号:</strong> {order.orderId}</div>
-          <div><strong>Table:</strong> {order.table || order.deviceId}</div>
-          <div><strong>时间:</strong> {formatMalaysiaTime(order.time)}</div>
-          <div><strong>总价:</strong> RM {order.total?.toFixed(2)}</div>
-          <div className="mt-2">
-            <Button onClick={() => printReceipt(order)}>🖨️ 打印收据</Button>
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-
   const updateSingleOrder = (order) => {
     fetch("https://ferns-breakfast-corner.com/api/update-order.php", {
       method: "POST",
