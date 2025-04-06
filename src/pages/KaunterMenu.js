@@ -15,7 +15,7 @@ const KaunterMenu = () => {
   useEffect(() => {
     if (!token) return;
     const fetchOrders = () => {
-      fetch(`/orders/orders-${selectedDate}.json?t=${Date.now()}`)
+      fetch(`https://ferns-breakfast-corner.com/orders/orders-${selectedDate}.json?t=${Date.now()}`)
         .then((res) => res.json())
         .then((data) => setOrders(data.reverse()));
     };

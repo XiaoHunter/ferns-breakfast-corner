@@ -1,39 +1,41 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState, useRef, useMemo } from "react";
 
-const OrderMenu = () => {
+export default function OrderMenu() {
   const [menu, setMenu] = useState([]);
   const [orderItems, setOrderItems] = useState([]);
   const [tableNo, setTableNo] = useState("");
-  const [orderId, setOrderId] = useState(null);
-  const [showTableSelect, setShowTableSelect] = useState(false);
+  const [selectingTable, setSelectingTable] = useState(true);
   const [selectedTable, setSelectedTable] = useState("");
+  const [loading, setLoading] = useState(true);
+
+  const deviceId = useMemo(() => {
+    const stored = localStorage.getItem("deviceId");
+    if (stored) return stored;
+    const newId = "device-" + Math.random().toString(36).substring(2, 8);
+    localStorage.setItem("deviceId", newId);
+    return newId;
+  }, []);
 
   useEffect(() => {
     fetch("/menu/orders-items.json")
       .then((res) => res.json())
-      .then((data) => setMenu(data.filter((item) => item.category.includes("饮料")))); // ✅ 仅饮料
+      .then((data) => {
+        const drinksOnly = data.filter((item) => item.category.includes("饮料"));
+        setMenu(drinksOnly);
+        setLoading(false);
+      });
   }, []);
 
-  const startNewOrder = () => {
-    setOrderItems([]);
-    setOrderId(null);
-    setSelectedTable(""); // 重置
-    setShowTableSelect(true);
-  };
-
   const confirmTableSelection = () => {
-    if (!selectedTable) {
-      alert("⚠️ 请选择一个桌号！");
-      return;
-    }
+    if (!selectedTable) return alert("⚠️ 请选择桌号");
     setTableNo(selectedTable);
-    setShowTableSelect(false);
+    setSelectingTable(false);
   };
 
   const addToOrder = (item) => {
     setOrderItems((prev) => {
-      const existing = prev.find((i) => i.name === item.name);
-      if (existing) {
+      const found = prev.find((i) => i.name === item.name);
+      if (found) {
         return prev.map((i) =>
           i.name === item.name ? { ...i, qty: i.qty + 1 } : i
         );
@@ -43,22 +45,27 @@ const OrderMenu = () => {
     });
   };
 
-  const requestBill = () => {
-    if (!orderItems.length || !tableNo) return alert("订单或桌号为空");
-    const total = orderItems.reduce((sum, i) => sum + i.price * i.qty, 0);
+  const getTotal = () => {
+    return orderItems.reduce((sum, i) => sum + i.qty * i.price, 0).toFixed(2);
+  };
+
+  const handleRequestBill = () => {
+    if (!orderItems.length || !tableNo) return alert("订单或桌号为空！");
+    const total = parseFloat(getTotal());
     const orderData = {
-      orderId: null, // 会自动生成
+      orderId: null,
       table: tableNo,
-      deviceId: "device-temp", // 备用字段
+      deviceId,
       items: orderItems,
       total,
       time: new Date().toISOString(),
       status: "completed",
       payment: "cash",
       paidAmount: total,
-      change: 0
+      change: 0,
     };
-    fetch("https://ferns-breakfast-corner.com/api/send-order.php", {
+
+    fetch("/api/send-order.php", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(orderData),
@@ -66,21 +73,23 @@ const OrderMenu = () => {
       .then((res) => res.json())
       .then((res) => {
         if (res.status === "success") {
-          setOrderId(res.orderId);
-          printReceipt(res.orderId);
+          printReceipt(orderData);
         }
       });
   };
 
-  const printReceipt = (oid) => {
-    const time = new Date().toLocaleString("en-MY", { hour12: false });
-    const total = orderItems.reduce((sum, i) => sum + i.price * i.qty, 0).toFixed(2);
-    const itemsHTML = orderItems.map(
-      (item) =>
-        `<tr><td colspan='2'>${item.name}</td></tr><tr><td>x ${item.qty}</td><td style='text-align:right'>RM ${(item.price * item.qty).toFixed(2)}</td></tr>`
-    ).join("");
-    const win = window.open("", "_blank", "width=400,height=600");
-    win.document.write(`
+  const printReceipt = (order) => {
+    const newWindow = window.open("", "_blank", "width=400,height=600");
+    const total = order.total.toFixed(2);
+    const time = new Date(order.time).toLocaleString("en-MY", { hour12: false });
+    const itemsHTML = order.items
+      .map(
+        (item) =>
+          `<tr><td colspan='2'>${item.name}</td></tr><tr><td>x ${item.qty}</td><td style='text-align:right'>RM ${(item.price * item.qty).toFixed(2)}</td></tr>`
+      )
+      .join("");
+
+    newWindow.document.write(`
       <html><head><style>
         body { font-family: Arial; font-size: 12px; padding: 5px; }
         img { display: block; margin: 0 auto 5px; width: 100%; max-width: 100%; }
@@ -92,46 +101,52 @@ const OrderMenu = () => {
       </style></head><body>
         <img src="/ferns-logo.png" />
         <h2>Ferns Breakfast Corner</h2>
-        <p>桌号: ${tableNo}</p>
+        <p>桌号: ${order.table}</p>
         <p>时间: ${time}</p>
         <hr /><table>${itemsHTML}</table><hr />
         <table><tr><td>总计:</td><td style='text-align:right'>RM ${total}</td></tr></table>
         <div class='center'>谢谢光临，欢迎再次光临！</div>
       </body></html>
     `);
-    win.document.close();
-    win.print();
+    newWindow.document.close();
+    newWindow.print();
   };
+
+  if (loading) return <div className="p-4">🕒 正在加载菜单...</div>;
+
+  if (selectingTable) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-yellow-100 relative text-center">
+        <img src="/ferns-logo.png" alt="Logo" className="absolute opacity-10 top-10 w-full max-w-md mx-auto" />
+        <h1 className="text-2xl font-bold text-yellow-900 z-10 mb-6">☕ Ferns Breakfast Corner</h1>
+        <h2 className="text-xl z-10 mb-2">🪑 请选择桌号</h2>
+        <select
+          value={selectedTable}
+          onChange={(e) => setSelectedTable(e.target.value)}
+          className="p-2 border rounded mb-4 z-10"
+        >
+          <option value="">-- 选择桌号 --</option>
+          {[...Array(12)].map((_, i) => (
+            <option key={i + 1} value={i + 1}>桌号 {i + 1}</option>
+          ))}
+        </select>
+        <button
+          onClick={confirmTableSelection}
+          className="bg-green-600 text-white px-4 py-2 rounded z-10"
+        >
+          开始点餐
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="p-4">
-      <button onClick={startNewOrder} className="bg-green-600 text-white px-4 py-2 rounded mb-4">➕ 新订单</button>
-      {showTableSelect && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded shadow w-80">
-            <h2 className="text-lg font-bold mb-4">🪑 选择桌号</h2>
-            <select
-              value={selectedTable}
-              onChange={(e) => setSelectedTable(e.target.value)}
-              className="w-full p-2 border rounded mb-4"
-            >
-              <option value="">请选择桌号</option>
-              {[...Array(12)].map((_, i) => (
-                <option key={i + 1} value={i + 1}>{i + 1}</option>
-              ))}
-            </select>
-            <div className="flex justify-end space-x-2">
-              <button onClick={() => setShowTableSelect(false)} className="px-3 py-1 bg-gray-300 rounded">取消</button>
-              <button onClick={confirmTableSelection} className="px-3 py-1 bg-green-500 text-white rounded">确认</button>
-            </div>
-          </div>
-        </div>
-      )}
-      <h2 className="text-lg font-bold mb-2">饮料菜单</h2>
+      <h2 className="text-xl font-bold mb-2">🧃 饮料菜单（桌号: {tableNo}）</h2>
       <div className="grid grid-cols-2 gap-2">
-        {menu.map((item, i) => (
-          <button key={i} onClick={() => addToOrder(item)} className="border p-2 rounded shadow">
-            {item.name} <br />RM {item.price.toFixed(2)}
+        {menu.map((item, index) => (
+          <button key={index} onClick={() => addToOrder(item)} className="border p-2 rounded shadow">
+            {item.name} <br /> RM {item.price.toFixed(2)}
           </button>
         ))}
       </div>
@@ -143,10 +158,9 @@ const OrderMenu = () => {
             <li key={i}>{item.name} x {item.qty}</li>
           ))}
         </ul>
-        <button onClick={requestBill} className="mt-4 bg-blue-600 text-white px-4 py-2 rounded">🧾 请求账单</button>
+        <div className="mt-2 font-bold">总计：RM {getTotal()}</div>
+        <button onClick={handleRequestBill} className="mt-4 bg-blue-600 text-white px-4 py-2 rounded">🧾 请求账单</button>
       </div>
     </div>
   );
-};
-
-export default OrderMenu;
+}
