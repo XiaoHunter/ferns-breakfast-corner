@@ -12,19 +12,66 @@ const KaunterMenu = () => {
     return malaysiaTime.toISOString().split("T")[0];
   }
 
+  const printOrder = (order) => {
+    const printWindow = window.open("", "_blank", "width=400,height=600");
+    if (!printWindow) return;
+
+    const time = formatMalaysiaTime(order.time);
+    const total = order.total?.toFixed(2) || "0.00";
+    const items = order.items.map((item) => {
+      const type = item.type === "hot" ? "Hot" : item.type === "cold" ? "Cold" : "";
+      const packed = item.packed ? "（Takeaway）" : "";
+      const addons = item.addons?.length ? " + " + item.addons.map(a => a.name).join(" + ") : "";
+      const basePrice =
+        item.type === "cold"
+          ? Number(item.coldPrice ?? item.price ?? 0)
+          : item.type === "hot"
+          ? Number(item.hotPrice ?? item.price ?? 0)
+          : Number(item.price ?? 0);
+      const addonTotal = (item.addons || []).reduce((s, a) => s + a.price, 0);
+      const packedFee = item.packed ? 0.2 : 0;
+      const comboTotal = ((basePrice + addonTotal + packedFee) * item.qty).toFixed(2);
+      
+      return `
+        <tr><td colspan="2">🍹 ${item.name} - ${typeLabel}${packedLabel}${addonLabel}</td></tr>
+        <tr><td>x ${item.qty}</td><td style="text-align:right">RM ${comboTotal}</td></tr>
+      `;
+    }).join("");
+
+    printWindow.document.write(`
+      <html><head><style>
+        body { font-family: Arial; font-size: 13px; padding: 10px; }
+        h2, p { margin: 0 0 8px 0; text-align: center; }
+        ul { list-style: none; padding-left: 0; }
+      </style></head><body>
+        <h2>🧾 Ferns Breakfast Corner</h2>
+        <p>订单编号: ${order.orderId}</p>
+        <p>Table: ${order.tableNo}</p>
+        <p>时间: ${time}</p>
+        <p>总价: RM ${total}</p>
+        <p>饮料：</p>
+        <ul>${items}</ul>
+      </body></html>
+    `);
+
+    printWindow.document.close();
+    printWindow.print();
+  };
+
   useEffect(() => {
     if (!token) return;
     const fetchOrders = () => {
-      fetch(`https://ferns-breakfast-corner.com/orders/orders-${selectedDate}.json?t=${Date.now()}`)
-        .then((res) => {
-          if (!res.ok) throw new Error("No order file found");
-          return res.json();
+      fetch(`https://your-server/orders/orders-${selectedDate}.json?t=${Date.now()}`)
+        .then(res => res.json())
+        .then((data) => {
+          const latest = [...data].sort((a, b) => b.orderId - a.orderId)[0];
+          if (latest?.orderId > lastOrderId) {
+            lastOrderId = latest.orderId;
+            printOrder(latest); // 👈 自动打印
+          }
+          setOrders(data.reverse());
         })
-        .then((data) => setOrders(data.reverse()))
-        .catch((err) => {
-          console.warn("🛑 订单档案加载失败：", err.message);
-          setOrders([]); // 清空 orders，代表今天没有订单
-        });
+        .catch(() => setOrders([])); // 若 fetch 失败，避免崩溃
     };
     fetchOrders();
     const interval = setInterval(fetchOrders, 5000);
@@ -92,13 +139,33 @@ const KaunterMenu = () => {
       {orders.map((order) => (
         <div key={order.orderId} className="border p-3 mb-4 rounded shadow">
           <div><strong>订单编号:</strong> {order.orderId}</div>
-          <div><strong>Table:</strong> {order.table || order.deviceId}</div>
+          <div><strong>Table:</strong> {order.tableNo}</div>
           <div><strong>时间:</strong> {formatMalaysiaTime(order.time)}</div>
           <div><strong>总价:</strong> RM {parseFloat(order.total || 0).toFixed(2)}</div>
           <ul className="mt-2">
-            {order.items.map((item, i) => (
-              <li key={i}>{item.name} x {item.qty}</li>
-            ))}
+            <li><strong>饮料：</strong></li>
+            {order.items.map((item, i) => {
+              const typeLabel = item.type === "hot" ? "Hot" : item.type === "cold" ? "Cold" : "";
+              const packedLabel = item.packed ? "（Takeaway）" : "";
+              const addonLabel = item.addons?.length
+                ? " + " + item.addons.map(a => a.name).join(" + ")
+                : "";
+              const basePrice =
+                item.type === "cold"
+                  ? Number(item.coldPrice ?? item.price ?? 0)
+                  : item.type === "hot"
+                  ? Number(item.hotPrice ?? item.price ?? 0)
+                  : Number(item.price ?? 0);
+              const addonTotal = (item.addons || []).reduce((s, a) => s + a.price, 0);
+              const packedFee = item.packed ? 0.2 : 0;
+              const comboTotal = ((basePrice + addonTotal + packedFee) * item.qty).toFixed(2);
+
+              return (
+                <li key={i}>
+                  {item.name} - {typeLabel} {packedLabel} {addonLabel} x {item.qty} = RM {comboTotal}
+                </li>
+              );
+            })}
           </ul>
         </div>
       ))}
