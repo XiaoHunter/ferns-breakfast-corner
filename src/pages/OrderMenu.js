@@ -302,14 +302,14 @@ export default function OrderMenu() {
                       <div className="flex gap-2 mt-2 items-center">
                         <button
                           className="px-3 py-1 bg-gray-300 rounded"
-                          onClick={() => updateQty(item, -1)}
+                          onClick={() => updateQty(item, type, -1)}
                         >
                           ➖
                         </button>
                         <span>{ordered?.qty || 0}</span>
                         <button
                           className="px-3 py-1 bg-green-400 rounded"
-                          onClick={() => updateQty(item, 1)}
+                          onClick={() => updateQty(item, type, -1)}
                         >
                           ➕
                         </button>
