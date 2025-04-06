@@ -87,8 +87,7 @@ const KaunterMenu = () => {
           window.onload = function () {
             setTimeout(() => {
               window.print();
-              setTimeout(() => window.close(), 2000);
-            }, 2000);
+            }, 5000);
           };
         </script>
       </body></html>
