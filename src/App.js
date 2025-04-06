@@ -9,10 +9,6 @@ function App() {
   return (
     <Router>
       <div className="p-4 bg-yellow-100 min-h-screen">
-        <h1 className="text-2xl font-bold mb-4">Ferns Breakfast Corner</h1>
-        <nav className="mb-4">
-          <Link className="text-blue-600" to="/">Order Menu</Link>
-        </nav>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/ordermenu" element={<OrderMenu />} />

@@ -11,13 +11,6 @@ function HomePage() {
     if (!selectedTable) return alert("⚠️ Please select a table number");
     setTableNo(selectedTable);
     setSelectingTable(false);
-  };
-
-  const handleStart = () => {
-    if (!selectedTable) {
-      alert("⚠️ Please select a table number");
-      return;
-    }
     navigate(`/ordermenu?table=${selectedTable}`);
   };
 
