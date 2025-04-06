@@ -38,6 +38,8 @@ const KaunterMenu = () => {
   }, [menu]);
 
   const printOrder = (order) => {
+    const printWindow = window.open("", "_blank", "width=400,height=600");
+
     const time = formatMalaysiaTime(order.time);
     const total = Number(order.total || 0).toFixed(2);
     const items = order.items.map((item) => {
@@ -90,10 +92,8 @@ const KaunterMenu = () => {
       </body></html>
     `;
 
-    document.body.innerHTML = html;
-    setTimeout(() => {
-      window.print();
-    }, 1000);
+    printWindow.document.write(html);
+    printWindow.document.close();
   };
 
   const lastOrderIdRef = useRef(0);
