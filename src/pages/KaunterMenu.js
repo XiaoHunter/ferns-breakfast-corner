@@ -181,9 +181,9 @@ const KaunterMenu = () => {
           <ul className="mt-2">
             <li><strong>饮料：</strong></li>
             const flatMenu = useMemo(() => {
-              if (!menu || !Array.isArray(menu)) return [];
+              if (!menu || typeof menu !== 'object') return [];
               return Object.entries(menu).flatMap(([cat, items]) =>
-                items.map(i => ({ ...i, category: cat }))
+                items.map((i) => ({ ...i, category: cat }))
               );
             }, [menu]);
             {order.items.map((item, i) => {
