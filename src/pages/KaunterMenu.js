@@ -5,6 +5,7 @@ const KaunterMenu = () => {
   const [input, setInput] = useState("");
   const [orders, setOrders] = useState([]);
   const [menu, setMenu] = useState([]);
+  const [printedOrders, setPrintedOrders] = useState([]);
   const [selectedDate, setSelectedDate] = useState(getMalaysiaToday());
 
   function getMalaysiaToday() {
@@ -167,6 +168,42 @@ const KaunterMenu = () => {
     return total.toFixed(2);
   };
 
+  const handleManualPrint = () => {
+    fetch(`https://ferns-breakfast-corner.com/orders/orders-${selectedDate}.json?t=${Date.now()}`)
+      .then(res => res.json())
+      .then((data) => {
+        const unprinted = data.filter(order => !order.printRef && !printedOrders.includes(order.orderId));
+        console.log("📦 未打印订单: ", unprinted);
+
+        unprinted.forEach((order, idx) => {
+          setTimeout(() => {
+            printOrder(order);
+            setPrintedOrders(prev => [...prev, order.orderId]);
+
+            fetch("https://ferns-breakfast-corner.com/api/mark-order-printed.php", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ date: selectedDate, orderId: order.orderId })
+            }).then(res => res.json()).then(console.log).catch(console.error);
+          }, idx * 2000); // 每张延迟 2 秒
+        });
+
+        setOrders(data.reverse());
+      })
+      .catch(() => setOrders([]));
+  };
+
+  const handleManualPrintOrder = (order) => {
+    printOrder(order);
+    setPrintedOrders(prev => [...prev, order.orderId]);
+
+    fetch("https://ferns-breakfast-corner.com/api/mark-order-printed.php", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ date: selectedDate, orderId: order.orderId })
+    });
+  };
+
   if (!token) {
     return (
       <div className="p-4">
@@ -188,6 +225,12 @@ const KaunterMenu = () => {
       <h2 className="text-lg font-bold mb-2">📜 Kaunter Order List - {selectedDate.split('-').reverse().join('/')}</h2>
 
       <div className="mb-4 flex items-center gap-2">
+        <button
+          className="bg-green-600 text-white px-4 py-1 rounded mb-4"
+          onClick={handleManualPrint}
+        >
+          📥 Refresh Orders & Print
+        </button>
         <label htmlFor="date" className="text-sm">📅 选择日期：</label>
         <input type="date" id="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} className="border px-2 py-1" />
         <span className="ml-auto font-semibold">💰 总金额：RM {getDailyTotal()}</span>
@@ -199,6 +242,22 @@ const KaunterMenu = () => {
           <div><strong>Table:</strong> {order.tableNo}</div>
           <div><strong>时间:</strong> {formatMalaysiaTime(order.time)}</div>
           <div><strong>总价:</strong> RM {parseFloat(order.total || 0).toFixed(2)}</div>
+          <div>
+            <strong>打印状态:</strong>{" "}
+            {order.printRef ? (
+              <span className="text-green-600 font-semibold">✅ 已打印</span>
+            ) : (
+              <span className="text-red-500">❌ 未打印</span>
+            )}
+            {!order.printRef && (
+            <button
+              className="text-sm text-blue-600 underline mt-1"
+              onClick={() => handleManualPrintOrder(order)}
+            >
+              🖨️ 补打印
+            </button>
+          )}
+          </div>
           <ul className="mt-2">
             <li><strong>饮料：</strong></li>
             {order.items.map((item, i) => {
