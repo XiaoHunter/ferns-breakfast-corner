@@ -238,7 +238,11 @@ const KaunterMenu = () => {
           <div><strong>总价:</strong> RM {parseFloat(order.total || 0).toFixed(2)}</div>
           <div>
             <strong>打印状态:</strong>{" "}
-            <span className="text-red-500">❌ 未打印</span>
+            {order.printRef ? (
+              <span className="text-green-600 font-semibold">✅ 已打印</span>
+            ) : (
+              <span className="text-red-500">❌ 未打印</span>
+            )}
             <button
               className="text-sm text-blue-600 underline ml-2"
               onClick={() => handleManualPrintOrder(order)}
