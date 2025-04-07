@@ -119,9 +119,9 @@ const KaunterMenu = () => {
               window.print();
             };
 
-            window.onafterprint = function () {
+            setTimeout(() => {
               window.close();
-            };
+            }, 6000);
           </script>
         </body>
       </html>
