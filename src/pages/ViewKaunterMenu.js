@@ -114,6 +114,14 @@ const KaunterMenu = () => {
           <div><strong>Table:</strong> {order.tableNo}</div>
           <div><strong>时间:</strong> {formatMalaysiaTime(order.time)}</div>
           <div><strong>总价:</strong> RM {parseFloat(order.total || 0).toFixed(2)}</div>
+          <div>
+            <strong>打印状态:</strong>{" "}
+            {order.printRef ? (
+              <span className="text-green-600 font-semibold">✅ 已打印</span>
+            ) : (
+              <span className="text-red-500">❌ 未打印</span>
+            )}
+          </div>
           <ul className="mt-2">
             <li><strong>饮料：</strong></li>
             {order.items.map((item, i) => {
