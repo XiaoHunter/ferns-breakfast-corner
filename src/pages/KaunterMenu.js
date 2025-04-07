@@ -118,6 +118,9 @@ const KaunterMenu = () => {
             window.onload = function () {
               window.print();
             };
+            window.onafterprint = function () {
+              window.close();
+            };
           </script>
         </body>
       </html>
@@ -125,7 +128,6 @@ const KaunterMenu = () => {
 
     printWindow.document.write(html);
     printWindow.document.close();
-    printWindow.print();
   };
 
   useEffect(() => {
