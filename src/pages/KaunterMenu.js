@@ -220,7 +220,7 @@ const KaunterMenu = () => {
         .filter((order) => {
           const time = order.time;
           const oneHourAgo = Date.now() - 60 * 60 * 1000;
-          return orderTime >= oneHourAgo;
+          return time >= oneHourAgo;
         })
         .map((order) => (
         <div key={order.orderId} className="border p-3 mb-4 rounded shadow">
