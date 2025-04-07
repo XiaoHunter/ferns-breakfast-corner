@@ -117,7 +117,7 @@ const KaunterMenu = () => {
           <ul className="mt-2">
             <li><strong>饮料：</strong></li>
             {order.items.map((item, i) => {
-              const typeLabel = item.type === "hot" ? "Hot" : item.type === "cold" ? "Cold" : "";
+              const typeLabel = item.type === "HOT" ? "HOT" : item.type === "COLD" ? "COLD" : "";
               const packedLabel = item.packed ? "（Takeaway）" : "";
               const addonLabel = item.addons?.length
                 ? " + " + item.addons.map(a => a.name).join(" + ")

@@ -44,7 +44,7 @@ const KaunterMenu = () => {
     const time = formatMalaysiaTime(order.time);
     const total = Number(order.total || 0).toFixed(2);
     const items = order.items.map((item) => {
-      const type = item.type === "hot" ? "Hot" : item.type === "cold" ? "Cold" : "";
+      const type = item.type === "HOT" ? "HOT" : item.type === "COLD" ? "COLD" : "";
       console.log("Type: ", type, " Item Type: ", item.type);
       const packed = item.packed ? "（Takeaway）" : "";
       const addons = item.addons?.length ? " + " + item.addons.map(a => a.name).join(" + ") : "";
@@ -202,7 +202,7 @@ const KaunterMenu = () => {
           <ul className="mt-2">
             <li><strong>饮料：</strong></li>
             {order.items.map((item, i) => {
-              const typeLabel = item.type === "hot" ? "Hot" : item.type === "cold" ? "Cold" : "";
+              const typeLabel = item.type === "HOT" ? "HOT" : item.type === "COLD" ? "COLD" : "";
               console.log("typeLabel: ", typeLabel, " Item Type: ", item.type);
               const packedLabel = item.packed ? "（Takeaway）" : "";
               const addonLabel = item.addons?.length
