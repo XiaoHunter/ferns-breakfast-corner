@@ -42,7 +42,7 @@ const KaunterMenu = () => {
     const printWindow = window.open("", "_blank", "width=400,height=600");
     if (!printWindow) return;
 
-    const time = formatMalaysiaTime(order.time);
+    const time = order.time;
     const total = Number(order.total || 0).toFixed(2);
     const items = order.items.map((item) => {
       const type = item.type === "HOT" ? "HOT" : item.type === "COLD" ? "COLD" : "";
@@ -142,12 +142,6 @@ const KaunterMenu = () => {
     return () => clearInterval(interval);
   }, [selectedDate]);
 
-  const formatMalaysiaTime = (isoTime) => {
-    const date = new Date(isoTime);
-    const local = new Date(date.getTime() + 8 * 60 * 60 * 1000);
-    return local.toLocaleString("en-MY", { hour12: false });
-  };
-
   const getDailyTotal = () => {
     const list = Array.isArray(orders)
       ? orders
@@ -200,20 +194,13 @@ const KaunterMenu = () => {
   const handleManualPrintOrder = (order) => {
     printOrder(order);
     setPrintedOrders(prev => [...prev, order.orderId]);
+    setOrders(prev => prev.map(o => o.orderId === order.orderId ? { ...o, printRef: true } : o));
 
-    const result = window.confirm("请问打印成功了吗？");
-    if (result) {
-      setOrders((prev) =>
-        prev.map((o) =>
-          o.orderId === order.orderId ? { ...o, printRef: true } : o
-        )
-      );
-      fetch("https://ferns-breakfast-corner.com/api/mark-order-printed.php", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ date: selectedDate, orderId: order.orderId })
-      });
-    }
+    fetch("https://ferns-breakfast-corner.com/api/mark-order-printed.php", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ date: selectedDate, orderId: order.orderId }),
+    });
   };
 
   return (
@@ -230,12 +217,16 @@ const KaunterMenu = () => {
       </div>
 
       {orders
-        .filter(order => !order.printRef)
+        .filter((order) => {
+          const time = order.time;
+          const oneHourAgo = Date.now() - 60 * 60 * 1000;
+          return orderTime >= oneHourAgo;
+        })
         .map((order) => (
         <div key={order.orderId} className="border p-3 mb-4 rounded shadow">
           <div><strong>订单编号:</strong> {order.orderId}</div>
           <div><strong>Table:</strong> {order.tableNo}</div>
-          <div><strong>时间:</strong> {formatMalaysiaTime(order.time)}</div>
+          <div><strong>时间:</strong> {order.time}</div>
           <div><strong>总价:</strong> RM {parseFloat(order.total || 0).toFixed(2)}</div>
           <div>
             <strong>打印状态:</strong>{" "}
