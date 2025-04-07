@@ -116,13 +116,12 @@ const KaunterMenu = () => {
           <table>${items}</table>
           <script>
             window.onload = function () {
-              setTimeout(() => {
-                window.print();
-              }, 100);
+              window.print();
             };
-            setTimeout(() => {
+
+            window.onafterprint = function () {
               window.close();
-            }, 3000);
+            };
           </script>
         </body>
       </html>
