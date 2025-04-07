@@ -42,7 +42,7 @@ const KaunterMenu = () => {
     const printWindow = window.open("", "_blank", "width=400,height=600");
     if (!printWindow) return;
 
-    const time = order.time;
+    const time = formatMalaysiaTime(order.time);
     const total = Number(order.total || 0).toFixed(2);
     const items = order.items.map((item) => {
       const type = item.type === "HOT" ? "HOT" : item.type === "COLD" ? "COLD" : "";
@@ -205,8 +205,7 @@ const KaunterMenu = () => {
 
   const formatMalaysiaTime = (isoTime) => {
     const date = new Date(isoTime);
-    const local = new Date(date.getTime() + 8 * 60 * 60 * 1000);
-    return local.toLocaleString("en-MY", {
+    return date.toLocaleString("en-MY", {
       timeZone: "Asia/Kuala_Lumpur",
       hour12: false,
     });

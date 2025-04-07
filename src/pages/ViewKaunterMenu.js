@@ -65,8 +65,7 @@ const KaunterMenu = () => {
 
   const formatMalaysiaTime = (isoTime) => {
     const date = new Date(isoTime);
-    const local = new Date(date.getTime() + 8 * 60 * 60 * 1000);
-    return local.toLocaleString("en-MY", {
+    return date.toLocaleString("en-MY", {
       timeZone: "Asia/Kuala_Lumpur",
       hour12: false,
     });
