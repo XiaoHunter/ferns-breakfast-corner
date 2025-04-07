@@ -125,6 +125,7 @@ const KaunterMenu = () => {
 
     printWindow.document.write(html);
     printWindow.document.close();
+    printWindow.print();
   };
 
   useEffect(() => {
