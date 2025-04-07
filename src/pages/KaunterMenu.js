@@ -83,27 +83,25 @@ const KaunterMenu = () => {
               }
               body {
                 font-family: 'monospace';
-                font-size: 16px;
+                font-size: 18px;
                 margin: 0;
-                padding: 0;
+                padding: 4px;
                 line-height: 1.4;
               }
               h2 {
-                font-size: 14px;
-                margin: 4px 0;
+                font-size: 18px;
                 text-align: center;
               }
               p {
-                margin: 2px 0;
+                font-size: 16px;
                 text-align: center;
               }
               table {
                 width: 100%;
-                font-size: 12px;
-                margin-top: 4px;
+                font-size: 16px;
               }
               td {
-                padding: 2px 0;
+                padding: 4px 0;
               }
             }
           </style>
@@ -172,23 +170,21 @@ const KaunterMenu = () => {
           const order = unprinted[idx];
           printOrder(order);
 
-          setTimeout(() => {
-            const confirmPrint = window.confirm(`请问打印成功了吗？`);
-            if (confirmPrint) {
-              setPrintedOrders(prev => [...prev, order.orderId]);
-              setOrders((prev) =>
-                prev.map(o => o.orderId === order.orderId ? { ...o, printRef: true } : o)
-              );
+          const confirmPrint = window.confirm(`请问打印成功了吗？`);
+          if (confirmPrint) {
+            setPrintedOrders(prev => [...prev, order.orderId]);
+            setOrders((prev) =>
+              prev.map(o => o.orderId === order.orderId ? { ...o, printRef: true } : o)
+            );
 
-              fetch("https://ferns-breakfast-corner.com/api/mark-order-printed.php", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ date: selectedDate, orderId: order.orderId })
-              }).then(res => res.json()).then(console.log).catch(console.error);
+            fetch("https://ferns-breakfast-corner.com/api/mark-order-printed.php", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ date: selectedDate, orderId: order.orderId })
+            }).then(res => res.json()).then(console.log).catch(console.error);
 
-              printNext(idx + 1); // 再继续下一个订单
-            }
-          }, 2000);
+            printNext(idx + 1); // 再继续下一个订单
+          }
         };
 
         printNext(0);
@@ -201,21 +197,19 @@ const KaunterMenu = () => {
     printOrder(order);
     setPrintedOrders(prev => [...prev, order.orderId]);
 
-    setTimeout(() => {
-      const result = window.confirm("请问打印成功了吗？");
-      if (result) {
-        setOrders((prev) =>
-          prev.map((o) =>
-            o.orderId === order.orderId ? { ...o, printRef: true } : o
-          )
-        );
-        fetch("https://ferns-breakfast-corner.com/api/mark-order-printed.php", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ date: selectedDate, orderId: order.orderId })
-        });
-      }
-    }, 2000);
+    const result = window.confirm("请问打印成功了吗？");
+    if (result) {
+      setOrders((prev) =>
+        prev.map((o) =>
+          o.orderId === order.orderId ? { ...o, printRef: true } : o
+        )
+      );
+      fetch("https://ferns-breakfast-corner.com/api/mark-order-printed.php", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ date: selectedDate, orderId: order.orderId })
+      });
+    }
   };
 
   return (
