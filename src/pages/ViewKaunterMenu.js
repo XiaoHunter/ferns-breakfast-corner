@@ -32,104 +32,19 @@ const KaunterMenu = () => {
     const result = menu.flatMap(({ category, items }) =>
       items.map(i => ({ ...i, category }))
     );
-
-    console.log("📋 flatMenu:", result);
     return result;
   }, [menu]);
 
-  const printOrder = (order) => {
-    const printWindow = window.open("", "_blank", "width=400,height=600");
-    if (!printWindow) return;
-
-    const time = formatMalaysiaTime(order.time);
-    const total = Number(order.total || 0).toFixed(2);
-    const items = order.items.map((item) => {
-      const type = item.type === "hot" ? "Hot" : item.type === "cold" ? "Cold" : "";
-      console.log("Type: ", type, " Item Type: ", item.type);
-      const packed = item.packed ? "（Takeaway）" : "";
-      const addons = item.addons?.length ? " + " + item.addons.map(a => a.name).join(" + ") : "";
-      const matched = flatMenu.find(m => m.name === item.name);
-      const basePrice =
-        item.type?.toLowerCase() === "cold"
-          ? Number(matched?.coldPrice ?? matched?.price ?? 0)
-          : item.type?.toLowerCase() === "hot"
-          ? Number(matched?.hotPrice ?? matched?.price ?? 0)
-          : Number(matched?.price ?? 0);
-      const addonTotal = (item.addons || []).reduce((s, a) => s + a.price, 0);
-      const packedFee = item.packed ? 0.2 : 0;
-      const comboTotal = ((basePrice + addonTotal + packedFee) * item.qty).toFixed(2);
-
-      return `
-        <tr>
-          <td>
-            ${item.name} - ${type}${packed}${addons} x ${item.qty}
-          </td>
-          <td style="text-align:right">
-            RM ${comboTotal}
-          </td>
-        </tr>
-      `;
-    }).join("");
-
-    const html = `
-      <html><head><style>
-        body { font-family: Arial; font-size: 13px; padding: 10px; }
-        h2, p { margin: 0 0 8px 0; text-align: center; }
-        ul { list-style: none; padding-left: 0; }
-      </style></head><body>
-        <h2>🧾 Ferns Breakfast Corner</h2>
-        <p>订单编号: ${order.orderId}</p>
-        <p>Table: ${order.tableNo}</p>
-        <p>时间: ${time}</p>
-        <p>总价: RM ${total}</p>
-        <p>饮料：</p>
-        <table>${items}</table>
-        <script>
-          window.onload = function () {
-            setTimeout(() => {
-              window.print();
-            }, 5000);
-          };
-        </script>
-      </body></html>
-    `;
-
-    printWindow.document.write(html);
-    printWindow.document.close();
-    printWindow.print();
-  };
-
-  const lastOrderIdRef = useRef(0);
 
   useEffect(() => {
     if (!token) return;
+
     const fetchOrders = () => {
       fetch(`https://ferns-breakfast-corner.com/orders/orders-${selectedDate}.json?t=${Date.now()}`)
-        .then(res => res.json())
-        .then((data) => {
-          const latest = [...data].sort((a, b) => b.orderId - a.orderId)[0];
-          if (!latest.printRef && latest.orderId > lastOrderIdRef.current) {
-            lastOrderIdRef.current = latest.orderId;
-            setTimeout(() => {
-              if (!menu || !menu.length) return;
-              printOrder(latest);
-            }, 5000);
-            fetch("https://ferns-breakfast-corner.com/api/mark-order-printed.php", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                date: selectedDate,
-                orderId: latest.orderId
-              })
-            })
-            .then(res => res.json())
-            .then(console.log) // ✅ 成功或错误都看得见
-            .catch(console.error); // 🚨 网络失败就会显示出来
-          }
-          setOrders(data.reverse());
-        })
-        .catch(() => setOrders([])); // 若 fetch 失败，避免崩溃
+        .then((res) => res.json())
+        .then((data) => setOrders(data.reverse()));
     };
+
     fetchOrders();
     const interval = setInterval(fetchOrders, 5000);
     return () => clearInterval(interval);
@@ -203,13 +118,11 @@ const KaunterMenu = () => {
             <li><strong>饮料：</strong></li>
             {order.items.map((item, i) => {
               const typeLabel = item.type === "hot" ? "Hot" : item.type === "cold" ? "Cold" : "";
-              console.log("typeLabel: ", typeLabel, " Item Type: ", item.type);
               const packedLabel = item.packed ? "（Takeaway）" : "";
               const addonLabel = item.addons?.length
                 ? " + " + item.addons.map(a => a.name).join(" + ")
                 : "";
               const matched = flatMenu.find((m) => {
-                console.log("🟡 Checking item: ", item.name, " vs ", m.name);
                 return m.name === item.name;
               });
               const basePrice =

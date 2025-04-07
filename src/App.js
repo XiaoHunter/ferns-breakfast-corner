@@ -4,6 +4,7 @@ import Home from "./Home";
 import OrderMenu from "./pages/OrderMenu";
 import KaunterMenu from "./pages/KaunterMenu";
 import MerchantMenu from "./pages/MerchantMenu";
+import ViewKaunterMenu from "./pages/ViewKaunterMenu";
 
 function App() {
   return (
@@ -14,6 +15,7 @@ function App() {
           <Route path="/ordermenu" element={<OrderMenu />} />
           <Route path="/kaunter" element={<KaunterMenu />} />
           <Route path="/merchant" element={<MerchantMenu />} />
+          <Route path="/viewkaunter" element={<ViewKaunterMenu />} />
         </Routes>
       </div>
     </Router>
