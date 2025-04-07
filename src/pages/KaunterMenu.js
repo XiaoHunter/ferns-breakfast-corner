@@ -161,8 +161,13 @@ const KaunterMenu = () => {
     fetch(`https://ferns-breakfast-corner.com/orders/orders-${selectedDate}.json?t=${Date.now()}`)
       .then(res => res.json())
       .then((data) => {
-        const unprinted = data.filter(order => !order.printRef && !printedOrders.includes(order.orderId));
-        console.log("📦 未打印订单: ", unprinted);
+        const oneHourAgo = Date.now() - 60 * 60 * 1000;
+
+        const unprinted = data.filter(order => {
+          const orderTime = new Date(order.time).getTime();
+          return orderTime >= oneHourAgo && !order.printRef && !printedOrders.includes(order.orderId);
+        });
+        console.log("📦 未打印订单（1小时以内）: ", unprinted);
 
         const printNext = (idx) => {
           if (idx >= unprinted.length) return;
