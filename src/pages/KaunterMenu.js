@@ -184,7 +184,7 @@ const KaunterMenu = () => {
             }).then(res => res.json()).then(console.log).catch(console.error);
 
             printNext(idx + 1); // 再继续下一个订单
-          }
+          } else {}
         };
 
         printNext(0);
@@ -209,7 +209,7 @@ const KaunterMenu = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ date: selectedDate, orderId: order.orderId })
       });
-    }
+    } else {}
   };
 
   return (
