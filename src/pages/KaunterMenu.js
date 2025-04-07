@@ -203,6 +203,15 @@ const KaunterMenu = () => {
     });
   };
 
+  const formatMalaysiaTime = (isoTime) => {
+    const date = new Date(isoTime);
+    const local = new Date(date.getTime() + 8 * 60 * 60 * 1000);
+    return local.toLocaleString("en-MY", {
+      timeZone: "Asia/Kuala_Lumpur",
+      hour12: false,
+    });
+  };
+
   return (
     <div className="p-4">
       <h2 className="text-lg font-bold mb-2">📜 Kaunter Order List - {selectedDate.split('-').reverse().join('/')}</h2>
@@ -226,7 +235,7 @@ const KaunterMenu = () => {
         <div key={order.orderId} className="border p-3 mb-4 rounded shadow">
           <div><strong>订单编号:</strong> {order.orderId}</div>
           <div><strong>Table:</strong> {order.tableNo}</div>
-          <div><strong>时间:</strong> {order.time}</div>
+          <div><strong>时间:</strong> {formatMalaysiaTime(order.time)}</div>
           <div><strong>总价:</strong> RM {parseFloat(order.total || 0).toFixed(2)}</div>
           <div>
             <strong>打印状态:</strong>{" "}
