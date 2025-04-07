@@ -114,14 +114,17 @@ const KaunterMenu = () => {
           <p>总价: RM ${total}</p>
           <p>饮料：</p>
           <table>${items}</table>
+          <script>
+            window.onload = function () {
+              window.print();
+            };
+          </script>
         </body>
       </html>
     `;
 
     printWindow.document.write(html);
     printWindow.document.close();
-    printWindow.focus();
-    printWindow.print();
   };
 
   useEffect(() => {
