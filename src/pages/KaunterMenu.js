@@ -157,47 +157,6 @@ const KaunterMenu = () => {
     return total.toFixed(2);
   };
 
-  const handleManualPrint = () => {
-    fetch(`https://ferns-breakfast-corner.com/orders/orders-${selectedDate}.json?t=${Date.now()}`)
-      .then(res => res.json())
-      .then((data) => {
-        const oneHourAgo = Date.now() - 60 * 60 * 1000;
-
-        const unprinted = data.filter(order => {
-          const orderTime = new Date(order.time).getTime();
-          return orderTime >= oneHourAgo && !order.printRef && !printedOrders.includes(order.orderId);
-        });
-        console.log("📦 未打印订单（1小时以内）: ", unprinted);
-
-        const printNext = (idx) => {
-          if (idx >= unprinted.length) return;
-
-          const order = unprinted[idx];
-          printOrder(order);
-
-          const confirmPrint = window.confirm(`请问打印成功了吗？`);
-          if (confirmPrint) {
-            setPrintedOrders(prev => [...prev, order.orderId]);
-            setOrders((prev) =>
-              prev.map(o => o.orderId === order.orderId ? { ...o, printRef: true } : o)
-            );
-
-            fetch("https://ferns-breakfast-corner.com/api/mark-order-printed.php", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ date: selectedDate, orderId: order.orderId })
-            }).then(res => res.json()).then(console.log).catch(console.error);
-
-            printNext(idx + 1); // 再继续下一个订单
-          }
-        };
-
-        printNext(0);
-        setOrders(data.reverse());
-      })
-      .catch(() => setOrders([])); // 若 fetch 失败，避免崩溃
-  };
-
   const handleManualPrintOrder = (order) => {
     printOrder(order);
     setPrintedOrders(prev => [...prev, order.orderId]);
@@ -221,15 +180,6 @@ const KaunterMenu = () => {
   return (
     <div className="p-4">
       <h2 className="text-lg font-bold mb-2">📜 Kaunter Order List - {selectedDate.split('-').reverse().join('/')}</h2>
-
-      <div className="mb-4 flex items-center gap-2">
-        <button
-          className="bg-green-600 text-white px-4 py-1 rounded mb-4"
-          onClick={handleManualPrint}
-        >
-          📥 Refresh Orders & Print
-        </button>
-      </div>
 
       {orders
         .filter((order) => {
