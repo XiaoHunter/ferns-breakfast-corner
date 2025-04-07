@@ -101,7 +101,6 @@ const KaunterMenu = () => {
   };
 
   useEffect(() => {
-    if (!token) return;
     const fetchOrders = () => {
       fetch(`https://ferns-breakfast-corner.com/orders/orders-${selectedDate}.json?t=${Date.now()}`)
         .then(res => res.json())
@@ -113,7 +112,7 @@ const KaunterMenu = () => {
     fetchOrders();
     const interval = setInterval(fetchOrders, 5000);
     return () => clearInterval(interval);
-  }, [token, selectedDate]);
+  }, [selectedDate]);
 
   const formatMalaysiaTime = (isoTime) => {
     const date = new Date(isoTime);
@@ -206,7 +205,9 @@ const KaunterMenu = () => {
         </button>
       </div>
 
-      {orders.map((order) => (
+      {orders
+        .filter(order => !order.printRef)
+        .map((order) => (
         <div key={order.orderId} className="border p-3 mb-4 rounded shadow">
           <div><strong>订单编号:</strong> {order.orderId}</div>
           <div><strong>Table:</strong> {order.tableNo}</div>
@@ -214,19 +215,13 @@ const KaunterMenu = () => {
           <div><strong>总价:</strong> RM {parseFloat(order.total || 0).toFixed(2)}</div>
           <div>
             <strong>打印状态:</strong>{" "}
-            {order.printRef ? (
-              <span className="text-green-600 font-semibold">✅ 已打印</span>
-            ) : (
-              <span className="text-red-500">❌ 未打印</span>
-            )}
-            {!order.printRef && (
-              <button
-                className="text-sm text-blue-600 underline mt-1"
-                onClick={() => handleManualPrintOrder(order)}
-              >
-                🖨️ 补打印
-              </button>
-            )}
+            <span className="text-red-500">❌ 未打印</span>
+            <button
+              className="text-sm text-blue-600 underline ml-2"
+              onClick={() => handleManualPrintOrder(order)}
+            >
+              🖨 补打印
+            </button>
           </div>
           <ul className="mt-2">
             <li><strong>饮料：</strong></li>
