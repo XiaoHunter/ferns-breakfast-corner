@@ -300,7 +300,7 @@ export default function OrderMenu() {
                       </div>
                     );
                   });
-                })
+                });
               })}
             </div>
           </div>
