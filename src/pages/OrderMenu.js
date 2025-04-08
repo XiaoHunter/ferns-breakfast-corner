@@ -192,7 +192,7 @@ export default function OrderMenu() {
             <h2 className="text-xl font-bold mb-2">📂 {selectedCategory}</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {menu[selectedCategory].flatMap((section) => 
-                section.items.flatMap((item) => {
+                section.items.map((item) => {
                   const currentCategory = section.category;
                   const isDrink = currentCategory.startsWith("饮料");
                   const selectedType = typeStatus[item.name] || (isDrink ? "hot" : "standard");
