@@ -195,6 +195,7 @@ export default function OrderMenu() {
                 const isDrink = selectedCategory.startsWith("饮料");
                 const selectedType = typeStatus[item.name] || (isDrink ? "hot" : "standard");
                 const types = [selectedType];
+                const isNotBeer = !selectedCategory.startsWith("饮料 - 啤酒");
 
                 return types.map((type) => {
                   const keyBase = `${item.name}-${type}`;
@@ -211,7 +212,7 @@ export default function OrderMenu() {
                         : Number(item.coldPrice || item.price || 0))
                     : Number(item.price || 0);
                   const addonTotal = addons.reduce((sum, a) => sum + a.price, 0);
-                  let packedFee = isDrink && item.packed && selectedCategory !== "饮料 - 啤酒 (Drink - Beer)" ? 0.2 : 0;
+                  let packedFee = isDrink && item.packed && isNotBeer ? 0.2 : 0;
 
                   if (item.name === "Kopi" && type === "hot" && packed) {
                       packedFee += 0.80;
