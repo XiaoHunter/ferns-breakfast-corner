@@ -236,7 +236,7 @@ export default function OrderMenu() {
                             打包 (Takeaway){" "}
                             {isDrink && currentCategory !== "饮料 - 啤酒 (Drink - Beer)" ? (
                               <>
-                                (+RM0.20)
+                                {" (+RM0.20)"}
                                 {item.name === "Kopi" && type === "hot" ? " (+RM0.80)" : ""}
                               </>
                             ) : (
