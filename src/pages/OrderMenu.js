@@ -114,6 +114,10 @@ export default function OrderMenu() {
 
       const packedFee = isDrinkCategory && item.packed ? 0.2 : 0;
 
+      if (item.name === "Kopi" && item.type === "hot" && item.packed) {
+          packedFee += 0.80;
+      }
+
       sum += item.qty * (basePrice + addonTotal + packedFee);
     }
 
@@ -207,7 +211,13 @@ export default function OrderMenu() {
                         : Number(item.coldPrice || item.price || 0))
                     : Number(item.price || 0);
                   const addonTotal = addons.reduce((sum, a) => sum + a.price, 0);
-                  const price = unitPrice + (isDrink && packed ? 0.2 : 0) + addonTotal;
+                  const packedFee = isDrink && packed ? 0.2 : 0;
+
+                  if (item.name === "Kopi" && type === "hot" && packed) {
+                      packedFee += 0.80;
+                  }
+
+                  const price = unitPrice + packedFee + addonTotal;
 
                   return (
                     <div key={key} className="bg-white p-4 rounded shadow">
@@ -220,7 +230,16 @@ export default function OrderMenu() {
                           type="checkbox"
                           checked={packed}
                           onChange={() => togglePacked(item, type)}
-                        /> 打包 (Takeaway) {isDrink ? " (+RM0.20)" : ""}
+                        />{" "}
+                          打包 (Takeaway){" "}
+                          {isDrink ? (
+                            <>
+                              (+RM0.20)
+                              {item.name === "Kopi" && type === "hot" ? " +RM0.80" : ""}
+                            </>
+                          ) : (
+                            ""
+                          )}
                       </label>
                       {item.addons?.length > 0 && (
                         <div className="mt-1">
