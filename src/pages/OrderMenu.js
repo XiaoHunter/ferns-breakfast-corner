@@ -211,7 +211,7 @@ export default function OrderMenu() {
                         : Number(item.coldPrice || item.price || 0))
                     : Number(item.price || 0);
                   const addonTotal = addons.reduce((sum, a) => sum + a.price, 0);
-                  let let packedFee = isDrinkCategory && item.packed && item.category !== "饮料 - 啤酒" ? 0.2 : 0;
+                  let packedFee = isDrinkCategory && item.packed && item.category !== "饮料 - 啤酒" ? 0.2 : 0;
 
                   if (item.name === "Kopi" && type === "hot" && packed) {
                       packedFee += 0.80;
