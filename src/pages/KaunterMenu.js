@@ -58,7 +58,7 @@ const KaunterMenu = () => {
           : Number(matched?.price ?? 0);
       const isDrinkCategory = matched?.category?.startsWith("饮料");
       const addonTotal = (item.addons || []).reduce((s, a) => s + a.price, 0);
-      let packedFee = isDrinkCategory && item.packed && item.category !== "饮料 - 啤酒 (Drink - Beer)" ? 0.2 : 0;
+      let packedFee = isDrinkCategory && item.packed && matched?.category !== "饮料 - 啤酒 (Drink - Beer)" ? 0.2 : 0;
       if (item.name === "Kopi" && type === "HOT" && packed) {
           packedFee += 0.80;
       }
@@ -232,7 +232,7 @@ const KaunterMenu = () => {
 
               const isDrinkCategory = matched?.category?.startsWith("饮料");
               const addonTotal = (item.addons || []).reduce((s, a) => s + a.price, 0);
-              let packedFee = isDrinkCategory && item.packed && item.category !== "饮料 - 啤酒 (Drink - Beer)" ? 0.2 : 0;
+              let packedFee = isDrinkCategory && item.packed && matched?.category !== "饮料 - 啤酒 (Drink - Beer)" ? 0.2 : 0;
               if (item.name === "Kopi" && type === "HOT" && packed) {
                   packedFee += 0.80;
               }

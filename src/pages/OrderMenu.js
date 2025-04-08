@@ -112,7 +112,7 @@ export default function OrderMenu() {
       const isDrinkCategory = matched.category && matched.category.startsWith("饮料");
       const addonTotal = (item.addons || []).reduce((s, a) => s + a.price, 0);
 
-      let packedFee = isDrinkCategory && item.packed && item.category !== "饮料 - 啤酒 (Drink - Beer)" ? 0.2 : 0;
+      let packedFee = isDrinkCategory && item.packed && matched?.category !== "饮料 - 啤酒 (Drink - Beer)" ? 0.2 : 0;
 
       if (item.name === "Kopi" && item.type === "hot" && item.packed) {
           packedFee += 0.80;
@@ -191,8 +191,9 @@ export default function OrderMenu() {
           <div className="mb-8">
             <h2 className="text-xl font-bold mb-2">📂 {selectedCategory}</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {menu[selectedCategory].flatMap((item) => {
-                const isDrink = selectedCategory.startsWith("饮料");
+              {menu[selectedCategory].flatMap((section) => section.items.map((item) => {
+                const currentCategory = section.category;
+                const isDrink = currentCategory.startsWith("饮料");
                 const selectedType = typeStatus[item.name] || (isDrink ? "hot" : "standard");
                 const types = [selectedType];
 
@@ -211,7 +212,7 @@ export default function OrderMenu() {
                         : Number(item.coldPrice || item.price || 0))
                     : Number(item.price || 0);
                   const addonTotal = addons.reduce((sum, a) => sum + a.price, 0);
-                  let packedFee = isDrink && item.packed && item.category !== "饮料 - 啤酒 (Drink - Beer)" ? 0.2 : 0;
+                  let packedFee = isDrink && item.packed && currentCategory !== "饮料 - 啤酒 (Drink - Beer)" ? 0.2 : 0;
 
                   if (item.name === "Kopi" && type === "hot" && packed) {
                       packedFee += 0.80;
@@ -232,7 +233,7 @@ export default function OrderMenu() {
                           onChange={() => togglePacked(item, type)}
                         />{" "}
                           打包 (Takeaway){" "}
-                          {isDrink && item.category !== "饮料 - 啤酒 (Drink - Beer)" ? (
+                          {isDrink && item.category !== "饮料 -    (Drink - Beer)" ? (
                             <>
                               (+RM0.20)
                               {item.name === "Kopi" && type === "hot" ? " (+RM0.80)" : ""}
