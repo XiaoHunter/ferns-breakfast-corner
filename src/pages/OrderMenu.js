@@ -112,7 +112,7 @@ export default function OrderMenu() {
       const isDrinkCategory = matched.category && matched.category.startsWith("饮料");
       const addonTotal = (item.addons || []).reduce((s, a) => s + a.price, 0);
 
-      const packedFee = isDrinkCategory && item.packed ? 0.2 : 0;
+      let packedFee = isDrinkCategory && item.packed ? 0.2 : 0;
 
       if (item.name === "Kopi" && item.type === "hot" && item.packed) {
           packedFee += 0.80;
@@ -211,7 +211,7 @@ export default function OrderMenu() {
                         : Number(item.coldPrice || item.price || 0))
                     : Number(item.price || 0);
                   const addonTotal = addons.reduce((sum, a) => sum + a.price, 0);
-                  const packedFee = isDrink && packed ? 0.2 : 0;
+                  let packedFee = isDrink && packed ? 0.2 : 0;
 
                   if (item.name === "Kopi" && type === "hot" && packed) {
                       packedFee += 0.80;
@@ -235,7 +235,7 @@ export default function OrderMenu() {
                           {isDrink ? (
                             <>
                               (+RM0.20)
-                              {item.name === "Kopi" && type === "hot" ? " +RM0.80" : ""}
+                              {item.name === "Kopi" && type === "hot" ? " (+RM0.80)" : ""}
                             </>
                           ) : (
                             ""
