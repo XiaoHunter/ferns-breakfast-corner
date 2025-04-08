@@ -57,7 +57,10 @@ const KaunterMenu = () => {
           ? Number(matched?.hotPrice ?? matched?.price ?? 0)
           : Number(matched?.price ?? 0);
       const addonTotal = (item.addons || []).reduce((s, a) => s + a.price, 0);
-      const packedFee = item.packed ? 0.2 : 0;
+      let packedFee = isDrinkCategory && item.packed && item.category !== "饮料 - 啤酒" ? 0.2 : 0;
+      if (item.name === "Kopi" && type === "HOT" && packed) {
+          packedFee += 0.80;
+      }
       const comboTotal = ((basePrice + addonTotal + packedFee) * item.qty).toFixed(2);
 
       return `
@@ -229,7 +232,10 @@ const KaunterMenu = () => {
                   : Number(matched?.price ?? 0);
 
               const addonTotal = (item.addons || []).reduce((s, a) => s + a.price, 0);
-              const packedFee = item.packed ? 0.2 : 0;
+              let packedFee = isDrinkCategory && item.packed && item.category !== "饮料 - 啤酒" ? 0.2 : 0;
+              if (item.name === "Kopi" && type === "HOT" && packed) {
+                  packedFee += 0.80;
+              }
               const comboTotal = ((basePrice + addonTotal + packedFee) * item.qty).toFixed(2);
 
               return (
