@@ -191,117 +191,114 @@ export default function OrderMenu() {
           <div className="mb-8">
             <h2 className="text-xl font-bold mb-2">📂 {selectedCategory}</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {menu[selectedCategory].flatMap((section) => 
-                section.items.map((item) => {
-                  const currentCategory = section.category;
-                  const isDrink = currentCategory.startsWith("饮料");
-                  const selectedType = typeStatus[item.name] || (isDrink ? "hot" : "standard");
-                  const types = [selectedType];
+              {menu[selectedCategory].flatMap((item) => {
+                const isDrink = selectedCategory.startsWith("饮料");
+                const selectedType = typeStatus[item.name] || (isDrink ? "hot" : "standard");
+                const types = [selectedType];
 
-                  return types.map((type) => {
-                    const keyBase = `${item.name}-${type}`;
-                    const packed = packedStatus[keyBase] || false;
-                    const addons = addonsStatus[keyBase] || [];
-                    const packedPart = packed ? "-packed" : "";
-                    const addonPart = addons.length ? "-addons" : "";
+                return types.map((type) => {
+                  const keyBase = `${item.name}-${type}`;
+                  const packed = packedStatus[keyBase] || false;
+                  const addons = addonsStatus[keyBase] || [];
+                  const packedPart = packed ? "-packed" : "";
+                  const addonPart = addons.length ? "-addons" : "";
 
-                    const key = `${item.name}-${type}${packedPart}${addonPart}`;
-                    const ordered = order[key];
-                    const unitPrice = isDrink
-                      ? (type === "hot"
-                          ? Number(item.hotPrice || item.price || 0)
-                          : Number(item.coldPrice || item.price || 0))
-                      : Number(item.price || 0);
-                    const addonTotal = addons.reduce((sum, a) => sum + a.price, 0);
-                    let packedFee = isDrink && item.packed && currentCategory !== "饮料 - 啤酒 (Drink - Beer)" ? 0.2 : 0;
+                  const key = `${item.name}-${type}${packedPart}${addonPart}`;
+                  const ordered = order[key];
+                  const unitPrice = isDrink
+                    ? (type === "hot"
+                        ? Number(item.hotPrice || item.price || 0)
+                        : Number(item.coldPrice || item.price || 0))
+                    : Number(item.price || 0);
+                  const addonTotal = addons.reduce((sum, a) => sum + a.price, 0);
+                  let packedFee = isDrink && item.packed && selectedCategory !== "饮料 - 啤酒 (Drink - Beer)" ? 0.2 : 0;
 
-                    if (item.name === "Kopi" && type === "hot" && packed) {
-                        packedFee += 0.80;
-                    }
+                  if (item.name === "Kopi" && type === "hot" && packed) {
+                      packedFee += 0.80;
+                  }
 
-                    const price = unitPrice + packedFee + addonTotal;
+                  const price = unitPrice + packedFee + addonTotal;
 
-                    return (
-                      <div key={key} className="bg-white p-4 rounded shadow">
-                        <h2 className="font-semibold text-lg">
-                          {item.chineseName} {item.name}
-                        </h2>
-                        <p>RM {price.toFixed(2)}</p>
-                        <label className="block mt-1">
-                          <input
-                            type="checkbox"
-                            checked={packed}
-                            onChange={() => togglePacked(item, type)}
-                          />{" "}
-                            打包 (Takeaway){" "}
-                            {isDrink && currentCategory !== "饮料 - 啤酒 (Drink - Beer)" ? (
-                              <>
-                                {" (+RM0.20)"}
-                                {item.name === "Kopi" && type === "hot" ? " (+RM0.80)" : ""}
-                              </>
-                            ) : (
-                              ""
-                            )}
-                        </label>
-                        {item.addons?.length > 0 && (
-                          <div className="mt-1">
-                            {item.addons.map((addon) => (
-                              <label key={addon.name} className="block text-sm">
-                                <input
-                                  type="checkbox"
-                                  checked={addons.some((a) => a.name === addon.name)}
-                                  onChange={() => toggleAddon(item, type, addon)}
-                                /> {addon.name} (+RM{addon.price.toFixed(2)})
-                              </label>
-                            ))}
-                          </div>
-                        )}
-
-                        {/* 饮料类型选择 */}
-                        {isDrink && (
-                          <div className="mt-1">
-                            <label>
+                  return (
+                    <div key={key} className="bg-white p-4 rounded shadow">
+                      <h2 className="font-semibold text-lg">
+                        {item.chineseName} {item.name}
+                      </h2>
+                      <p>RM {price.toFixed(2)}</p>
+                      <label className="block mt-1">
+                        <input
+                          type="checkbox"
+                          checked={packed}
+                          onChange={() => togglePacked(item, type)}
+                        />{" "}
+                          打包 (Takeaway){" "}
+                          {isDrink && selectedCategory !== "饮料 - 啤酒 (Drink - Beer)" ? (
+                            <>
+                              (+RM0.20)
+                              {item.name === "Kopi" && type === "hot" ? " (+RM0.80)" : ""}
+                            </>
+                          ) : (
+                            ""
+                          )}
+                      </label>
+                      {item.addons?.length > 0 && (
+                        <div className="mt-1">
+                          {item.addons.map((addon) => (
+                            <label key={addon.name} className="block text-sm">
                               <input
-                                type="radio"
-                                name={`type-${item.name}`}
-                                value="hot"
-                                checked={type === "hot"}
-                                onChange={() => updateType(item.name, "hot")}
-                              /> 热 (Hot)
+                                type="checkbox"
+                                checked={addons.some((a) => a.name === addon.name)}
+                                onChange={() => toggleAddon(item, type, addon)}
+                              /> {addon.name} (+RM{addon.price.toFixed(2)})
                             </label>
-                            <label className="ml-2">
-                              <input
-                                type="radio"
-                                name={`type-${item.name}`}
-                                value="cold"
-                                checked={type === "cold"}
-                                onChange={() => updateType(item.name, "cold")}
-                              /> 冷 (Cold)
-                            </label>
-                          </div>
-                        )}
-
-                        {/* 数量控制 */}
-                        <div className="flex gap-2 mt-2 items-center">
-                          <button
-                            className="px-3 py-1 bg-gray-300 rounded"
-                            onClick={() => updateQty(item, type, -1)}
-                          >
-                            ➖
-                          </button>
-                          <span>{ordered?.qty || 0}</span>
-                          <button
-                            className="px-3 py-1 bg-green-400 rounded"
-                            onClick={() => updateQty(item, type, 1)}
-                          >
-                            ➕
-                          </button>
+                          ))}
                         </div>
+                      )}
+
+                      {/* 饮料类型选择 */}
+                      {isDrink && (
+                        <div className="mt-1">
+                          <label>
+                            <input
+                              type="radio"
+                              name={`type-${item.name}`}
+                              value="hot"
+                              checked={type === "hot"}
+                              onChange={() => updateType(item.name, "hot")}
+                            /> 热 (Hot)
+                          </label>
+                          <label className="ml-2">
+                            <input
+                              type="radio"
+                              name={`type-${item.name}`}
+                              value="cold"
+                              checked={type === "cold"}
+                              onChange={() => updateType(item.name, "cold")}
+                            /> 冷 (Cold)
+                          </label>
+                        </div>
+                      )}
+
+                      {/* 数量控制 */}
+                      <div className="flex gap-2 mt-2 items-center">
+                        <button
+                          className="px-3 py-1 bg-gray-300 rounded"
+                          onClick={() => updateQty(item, type, -1)}
+                        >
+                          ➖
+                        </button>
+                        <span>{ordered?.qty || 0}</span>
+                        <button
+                          className="px-3 py-1 bg-green-400 rounded"
+                          onClick={() => updateQty(item, type, 1)}
+                        >
+                          ➕
+                        </button>
                       </div>
-                    );
-                  });
-                })
-              )}
+                    </div>
+                  );
+                });
+              })}
             </div>
           </div>
         )}
