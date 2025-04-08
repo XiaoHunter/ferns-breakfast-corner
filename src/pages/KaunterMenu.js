@@ -216,8 +216,8 @@ const KaunterMenu = () => {
             <li><strong>饮料：</strong></li>
             {order.items.map((item, i) => {
               const type = item.type === "HOT" ? "HOT" : item.type === "COLD" ? "COLD" : "";
-              const packedLabel = item.packed ? "（Takeaway）" : "";
-              const addonLabel = item.addons?.length
+              const packed = item.packed ? "（Takeaway）" : "";
+              const addon = item.addons?.length
                 ? " + " + item.addons.map(a => a.name).join(" + ")
                 : "";
               const matched = flatMenu.find((m) => {
@@ -240,7 +240,7 @@ const KaunterMenu = () => {
 
               return (
                 <li key={i}>
-                  {item.name} - {type} {packedLabel} {addonLabel} x {item.qty} = RM {comboTotal}
+                  {item.name} - {type} {packed} {addon} x {item.qty} = RM {comboTotal}
                 </li>
               );
             })}
