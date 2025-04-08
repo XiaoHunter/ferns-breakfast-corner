@@ -215,8 +215,7 @@ const KaunterMenu = () => {
           <ul className="mt-2">
             <li><strong>饮料：</strong></li>
             {order.items.map((item, i) => {
-              const typeLabel = item.type === "HOT" ? "HOT" : item.type === "COLD" ? "COLD" : "";
-              console.log("typeLabel: ", typeLabel, " Item Type: ", item.type);
+              const type = item.type === "HOT" ? "HOT" : item.type === "COLD" ? "COLD" : "";
               const packedLabel = item.packed ? "（Takeaway）" : "";
               const addonLabel = item.addons?.length
                 ? " + " + item.addons.map(a => a.name).join(" + ")
@@ -230,7 +229,7 @@ const KaunterMenu = () => {
                   : item.type?.toLowerCase() === "hot"
                   ? Number(matched?.hotPrice ?? matched?.price ?? 0)
                   : Number(matched?.price ?? 0);
-              
+
               const isDrinkCategory = matched?.category?.startsWith("饮料");
               const addonTotal = (item.addons || []).reduce((s, a) => s + a.price, 0);
               let packedFee = isDrinkCategory && item.packed && item.category !== "饮料 - 啤酒" ? 0.2 : 0;
@@ -241,7 +240,7 @@ const KaunterMenu = () => {
 
               return (
                 <li key={i}>
-                  {item.name} - {typeLabel} {packedLabel} {addonLabel} x {item.qty} = RM {comboTotal}
+                  {item.name} - {type} {packedLabel} {addonLabel} x {item.qty} = RM {comboTotal}
                 </li>
               );
             })}
