@@ -64,7 +64,7 @@ const KaunterMenu = () => {
       const addonTotal = (item.addons || []).reduce((s, a) => s + a.price, 0);
       let packedFee = isDrinkCategory && item.packed && matched?.category !== "饮料 - 啤酒 (Drink - Beer)" ? 0.2 : 0;
       if (fixedPackedDrinkItems.includes(item.name) && packed) {
-          packedFee += 0.80;
+          packedFee += 0.60;
       }
       const comboTotal = ((basePrice + addonTotal + packedFee) * item.qty).toFixed(2);
 
@@ -238,7 +238,7 @@ const KaunterMenu = () => {
               const addonTotal = (item.addons || []).reduce((s, a) => s + a.price, 0);
               let packedFee = isDrinkCategory && item.packed && matched?.category !== "饮料 - 啤酒 (Drink - Beer)" ? 0.2 : 0;
               if (fixedPackedDrinkItems.includes(item.name) && packed) {
-                  packedFee += 0.80;
+                  packedFee += 0.60;
               }
               const comboTotal = ((basePrice + addonTotal + packedFee) * item.qty).toFixed(2);
 

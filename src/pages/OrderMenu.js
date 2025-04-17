@@ -119,7 +119,7 @@ export default function OrderMenu() {
       let packedFee = isDrinkCategory && item.packed && matched?.category !== "饮料 - 啤酒 (Drink - Beer)" ? 0.2 : 0;
 
       if (fixedPackedDrinkItems.includes(item.name) && item.packed) {
-          packedFee += 0.80;
+          packedFee += 0.60;
       }
 
       sum += item.qty * (basePrice + addonTotal + packedFee);
@@ -218,7 +218,7 @@ export default function OrderMenu() {
                   let packedFee = isDrink && packed && selectedCategory !== "饮料 - 啤酒 (Drink - Beer)" ? 0.2 : 0;
 
                   if (fixedPackedDrinkItems.includes(item.name) && packed) {
-                      packedFee += 0.80;
+                      packedFee += 0.60;
                   }
 
                   const price = unitPrice + packedFee + addonTotal;
@@ -239,7 +239,7 @@ export default function OrderMenu() {
                           {isDrink && selectedCategory !== "饮料 - 啤酒 (Drink - Beer)" ? (
                             <>
                               (+RM0.20)
-                              {fixedPackedDrinkItems.includes(item.name) ? " (+RM0.80)" : ""}
+                              {fixedPackedDrinkItems.includes(item.name) ? " (+RM0.60)" : ""}
                             </>
                           ) : (
                             ""
