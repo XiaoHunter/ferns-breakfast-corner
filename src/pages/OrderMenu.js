@@ -115,20 +115,12 @@ export default function OrderMenu() {
 
       const isDrinkCategory = matched.category && matched.category.startsWith("饮料");
       const addonTotal = (item.addons || []).reduce((s, a) => s + a.price, 0);
-      
-      const isFixedPackedDrink = isDrinkCategory && item.packed && fixedPackedDrinkItems.includes(item.name);
-      if (isFixedPackedDrink) {
-        sum += item.qty * 1.80;
-        continue;
-      }
 
       let packedFee = isDrinkCategory && item.packed && matched?.category !== "饮料 - 啤酒 (Drink - Beer)" ? 0.2 : 0;
 
-      /*
-      if (item.name === "Kopi" && item.type === "hot" && item.packed) {
+      if (fixedPackedDrinkItems.includes(item.name) && item.packed) {
           packedFee += 0.80;
       }
-      */
 
       sum += item.qty * (basePrice + addonTotal + packedFee);
     }
@@ -225,7 +217,7 @@ export default function OrderMenu() {
                   const addonTotal = addons.reduce((sum, a) => sum + a.price, 0);
                   let packedFee = isDrink && packed && selectedCategory !== "饮料 - 啤酒 (Drink - Beer)" ? 0.2 : 0;
 
-                  if (item.name === "Kopi" && type === "hot" && packed) {
+                  if (fixedPackedDrinkItems.includes(item.name) && packed) {
                       packedFee += 0.80;
                   }
 
@@ -247,7 +239,7 @@ export default function OrderMenu() {
                           {isDrink && selectedCategory !== "饮料 - 啤酒 (Drink - Beer)" ? (
                             <>
                               (+RM0.20)
-                              {item.name === "Kopi" && type === "hot" ? " (+RM0.80)" : ""}
+                              {fixedPackedDrinkItems.includes(item.name) ? " (+RM0.80)" : ""}
                             </>
                           ) : (
                             ""
