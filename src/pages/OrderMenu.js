@@ -94,6 +94,10 @@ export default function OrderMenu() {
     setAddonsStatus((prev) => ({ ...prev, [key]: updated }));
   };
 
+  const fixedPackedDrinkItems = [
+    "Kopi O", "Kopi", "Teh O", "Teh", "Cham O", "Cham", "Cham C"
+  ];
+
   const getTotal = () => {
     let sum = 0;
     const flatMenu = Object.entries(menu).flatMap(([cat, items]) =>
@@ -111,12 +115,20 @@ export default function OrderMenu() {
 
       const isDrinkCategory = matched.category && matched.category.startsWith("饮料");
       const addonTotal = (item.addons || []).reduce((s, a) => s + a.price, 0);
+      
+      const isFixedPackedDrink = isDrinkCategory && item.packed && fixedPackedDrinkItems.includes(item.name);
+      if (isFixedPackedDrink) {
+        sum += item.qty * 1.80;
+        continue;
+      }
 
       let packedFee = isDrinkCategory && item.packed && matched?.category !== "饮料 - 啤酒 (Drink - Beer)" ? 0.2 : 0;
 
+      /*
       if (item.name === "Kopi" && item.type === "hot" && item.packed) {
           packedFee += 0.80;
       }
+      */
 
       sum += item.qty * (basePrice + addonTotal + packedFee);
     }
